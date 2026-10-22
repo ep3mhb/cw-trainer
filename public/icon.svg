@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="CW Trainer">
+  <rect width="512" height="512" rx="96" fill="#11161d"/>
+  <!-- C = -.-.   W = .--   rendered as dits and dahs -->
+  <g fill="#58a6ff">
+    <rect x="88"  y="180" width="132" height="44" rx="22"/>
+    <circle cx="268" cy="202" r="22"/>
+    <rect x="312" y="180" width="132" height="44" rx="22"/>
+    <circle cx="88"  cy="310" r="22" transform="translate(22 0)"/>
+    <rect x="152" y="288" width="132" height="44" rx="22"/>
+    <rect x="312" y="288" width="132" height="44" rx="22"/>
+  </g>
+</svg>

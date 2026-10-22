@@ -1,0 +1,16 @@
+import { chromium } from 'playwright';
+const SIG = 'http://localhost:8080', APP = 'http://localhost:4173/';
+const email = process.argv[2];
+const l = await fetch(`${SIG}/api/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password: 'a-good-long-password' }) });
+const a = await l.json();
+const browser = await chromium.launch({ executablePath: process.env.PW_EXECUTABLE, args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio'] });
+const context = await browser.newContext({ viewport: { width: 1180, height: 860 }, deviceScaleFactor: 2, colorScheme: 'dark' });
+await context.addInitScript(([sig, tok]) => { localStorage.setItem('cw.sigOrigin', sig); localStorage.setItem('cw.session', tok); }, [SIG, a.token]);
+const page = await context.newPage();
+await page.goto(`${APP}#air`);
+await page.locator('button:has-text("Enable sound")').click();
+await page.locator('.log-row, .log-exchange').first().waitFor({ timeout: 10000 });
+await page.waitForTimeout(400);
+const panel = page.locator('.panel:has(h3:has-text("Your log")), .panel:has(h2:has-text("Your log"))').first();
+await panel.screenshot({ path: new URL('./shots/log.png', import.meta.url).pathname });
+await browser.close();

@@ -1,0 +1,29 @@
+{
+  "name": "cw-trainer",
+  "version": "0.13.2",
+  "private": true,
+  "type": "module",
+  "description": "Browser-based Morse code (CW) training application \u2014 Phase 1",
+  "license": "Apache-2.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build && node scripts/gen-sw.mjs",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "lint": "tsc --noEmit",
+    "test:e2e": "npm run build && node tests/e2e/smoke.mjs",
+    "test:band": "node tests/e2e/band.mjs",
+    "build:single": "npm run build && node scripts/build-single.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.1",
+    "@vitest/coverage-v8": "^5.0.1",
+    "playwright": "^1.63.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
+  },
+  "author": "Mohammad Bahrololoum"
+}

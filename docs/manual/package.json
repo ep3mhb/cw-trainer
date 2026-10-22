@@ -1,0 +1,13 @@
+{
+  "name": "cw-trainer-manual",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Build dependencies for the user manual's PDFs — see README.md",
+  "dependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/noto-sans-arabic": "^5.2.5",
+    "@fontsource/vazirmatn": "^5.3.0"
+  }
+}

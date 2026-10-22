@@ -1,0 +1,29 @@
+# Code owners for review requirements (RFP §11).
+#
+# There is one maintainer at the moment, so there is nothing for this file
+# to enforce: GitHub cannot require a review from the person who opened the
+# pull request. The rules are kept here, commented out, rather than deleted
+# — the paths are the argument, and they stay correct whoever ends up
+# owning them.
+#
+# To switch them on, uncomment and replace OWNER with a username
+# (@someone) or a team (@org/maintainers).
+
+# The timing engine and the decoder. §11: "a contributor can break these in
+# ways nobody notices until copy accuracy quietly degrades."
+# /src/core/timing.ts        OWNER
+# /src/core/decoder.ts       OWNER
+
+# The export envelope is a contract with Phase 2, which is required to read
+# every version this one writes.
+# /src/storage/schema.ts     OWNER
+
+# Build and release scripts, and the workflows themselves.
+# /scripts/                  OWNER
+# /.github/                  OWNER
+
+# Phase 2, listed ahead of time so the rule is already in force when the
+# code arrives rather than being remembered afterwards.
+# /src/auth/                 OWNER
+# /src/signalling/           OWNER
+# /server/                   OWNER

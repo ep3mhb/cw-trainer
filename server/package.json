@@ -1,0 +1,31 @@
+{
+  "name": "cw-trainer-server",
+  "version": "0.10.1",
+  "private": true,
+  "type": "module",
+  "description": "Signalling, accounts and contact log for CW Trainer live contacts (RFP §7, §8)",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "node build.mjs",
+    "start": "node dist/server.js",
+    "migrate": "node dist/server.js --migrate",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "nodemailer": "^7.0.0",
+    "pg": "^8.13.0",
+    "qrcode-generator": "^1.5.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.1",
+    "@types/nodemailer": "^7.0.0",
+    "@types/pg": "^8.11.0",
+    "@types/ws": "^8.5.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

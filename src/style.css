@@ -1,0 +1,1379 @@
+/*
+ * Styling notes for contributors:
+ *  - Audio is the point of this application, so state is never carried by
+ *    colour alone (RFP §9). Every coloured badge also carries a word or a
+ *    shape.
+ *  - ONE look, dark, in the manner of a radio's front panel: a charcoal
+ *    chassis, modules with a bezel, engraved captions, amber displays behind
+ *    glass, LED indicators, raised keys. Chosen by the project on 21 September
+ *    2026 ("dark panel with similarity to a radio panel") and deliberately
+ *    the only look — a front panel does not come in light.
+ *  - No web fonts: the application works offline and sends nothing on load
+ *    (§9). The displays use the system monospace with spacing and glow.
+ *  - Target sizes stay finger-sized: a phone is a legitimate way to run a
+ *    receiving drill.
+ */
+
+:root {
+  /* chassis and modules */
+  --bg: #0b0d11;
+  --bg-2: #101319;
+  --panel: #171b22;
+  --panel-2: #1e242d;
+  --panel-3: #262d38;
+  --line: #2c343f;
+  --line-2: #3a4351;
+  --bezel-hi: rgba(255, 255, 255, 0.06);
+  --bezel-lo: rgba(0, 0, 0, 0.55);
+  /* engraving */
+  --text: #e4e8ee;
+  --muted: #8d97a5;
+  --engrave: #a5aebb;
+  /* the display glass and its light */
+  --glass: #07090b;
+  --glass-2: #0d1114;
+  --vfd: #ffb545;
+  --vfd-dim: #8a6524;
+  --vfd-glow: rgba(255, 181, 69, 0.55);
+  /* the single accent is the display colour */
+  --accent: #ffb545;
+  --accent-ink: #1a1206;
+  /* LEDs */
+  --good: #45d16b;
+  --warn: #ffb545;
+  --bad: #ff5a5a;
+  --radius: 6px;
+  --radius-key: 5px;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+/*
+ * Prose links, wherever they appear. The contents list and the manual buttons
+ * set their own colour; everything else was taking the browser's blue, then
+ * purple once visited, which has no business on a panel of this kind.
+ */
+/*
+ * The promotion offer. Calm by design: a question in the flow of the page,
+ * with both answers equally easy to give. A member who wants to stay on
+ * lesson 12 for a month is doing nothing wrong.
+ */
+.offer {
+  padding: 0.8rem 0.95rem; margin: 0.4rem 0 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 6%, var(--panel-2));
+}
+.offer p { margin: 0 0 0.5rem; }
+.offer .row { margin: 0; gap: 0.4rem; flex-wrap: wrap; }
+
+/*
+ * The new-version banner. Calm on purpose: it sits in the flow above the
+ * panel rather than over it, it never blocks, and "Not now" means not now.
+ * A member mid-drill should be able to ignore it completely.
+ */
+/*
+ * The hidden attribute has to beat this rule, and whether it does is up to
+ * the engine: `[hidden] { display: none }` lives in the UA stylesheet, which
+ * an author `display: flex` is normally allowed to override. Chromium happens
+ * to keep it hidden; relying on that across engines is not something to find
+ * out from a member. So say it here, explicitly, and stop depending on which
+ * origin wins.
+ */
+.update-banner[hidden] { display: none; }
+.update-banner {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.9rem;
+  margin: 0 0 0.6rem; padding: 0.6rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-left-width: 3px; border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel));
+}
+.update-banner .hint { margin: 0; }
+.update-banner .row { margin-left: auto; gap: 0.4rem; }
+@media (max-width: 30rem) { .update-banner .row { margin-left: 0; } }
+
+a { color: var(--accent); }
+a:visited { color: var(--accent); }
+
+body {
+  margin: 0;
+  /* Brushed chassis: a faint horizontal grain over a vignette. */
+  /* No background-attachment: fixed — Safari repaints the whole page on
+     every animation frame with it, and the panadapter animates. */
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Engraved caption: what a panel legend looks like. */
+.engraved, .panel > h2, legend, label.field > span.label-row > span:first-child, th {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.1em;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--engrave);
+}
+
+
+/*
+ * The shell before the application boots. It used to say "Loading…" and
+ * nothing else, which is also all a crawler that does not run JavaScript ever
+ * saw. It now describes what the page is — in the words a reader would see,
+ * not a block written for machines — and boot() clears #app before it
+ * renders, so nobody reads it twice. The stylesheet is a <link> in the built
+ * page, so this is styled even while the module is still arriving.
+ */
+.booting {
+  max-width: 44rem; margin: 0 auto; padding: 3rem 1.25rem;
+  color: var(--muted); line-height: 1.65;
+}
+.booting p { margin: 0 0 0.9rem; }
+.booting strong { color: var(--text); }
+.booting .loading-line { color: var(--accent); margin-top: 1.6rem; }
+
+/* ---- layout ---- */
+
+.shell {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 4rem;
+}
+footer.hint { text-align: center; letter-spacing: 0.02em; }
+
+header.top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1rem;
+  margin: 0 0 0.6rem;
+  background: linear-gradient(180deg, var(--panel-3), var(--panel));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: inset 0 1px 0 var(--bezel-hi), 0 2px 8px var(--bezel-lo);
+}
+
+/* The model plate. */
+header.top h1 {
+  font-size: 1.05rem;
+  margin: 0;
+  letter-spacing: 0.2em;
+  font-variant-caps: all-small-caps;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.8);
+}
+
+header.top h1 .sub {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  font-variant-caps: normal;
+  margin-top: 0.1rem;
+}
+
+.top-status { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+
+/* Function keys along the top of the panel. The selected one is lit. */
+nav.tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+  padding: 0.35rem;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: inset 0 2px 6px var(--bezel-lo);
+}
+
+nav.tabs button {
+  appearance: none;
+  background: linear-gradient(180deg, var(--panel-3), var(--panel-2));
+  border: 1px solid var(--line-2);
+  border-bottom-color: #0a0c10;
+  border-radius: var(--radius-key);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  font-variant-caps: all-small-caps;
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 44px;
+  box-shadow: inset 0 1px 0 var(--bezel-hi), 0 2px 0 #0a0c10;
+}
+/* The ADMIN tab is hidden unless an administrator is signed in. */
+nav.tabs button[hidden] { display: none; }
+nav.tabs button:hover { color: var(--text); }
+nav.tabs button:active { transform: translateY(1px); box-shadow: inset 0 1px 0 var(--bezel-hi), 0 1px 0 #0a0c10; }
+
+nav.tabs button[aria-selected='true'] {
+  color: var(--accent);
+  border-color: var(--vfd-dim);
+  background: linear-gradient(180deg, #2a2418, #1c1912);
+  box-shadow: inset 0 1px 0 var(--bezel-hi), 0 2px 0 #0a0c10, 0 0 10px var(--vfd-glow);
+  text-shadow: 0 0 6px var(--vfd-glow);
+}
+
+nav.tabs button:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* A module on the panel: a bezel with a highlight along the top edge. */
+.panel {
+  background: linear-gradient(180deg, var(--panel-2) 0, var(--panel) 2.5rem);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+  box-shadow: inset 0 1px 0 var(--bezel-hi), 0 2px 10px var(--bezel-lo);
+}
+
+.panel > h2 {
+  margin: 0 0 0.45rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel > h2 + .hint { margin-top: 0; }
+
+.hint { color: var(--muted); font-size: 0.85rem; margin: 0 0 0.9rem; }
+
+.row { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.row.end { justify-content: flex-end; }
+.grid {
+  display: grid;
+  gap: 0.9rem 1.1rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  /* Stretch, not end: every field then gets the row's height and pins its
+     own control to the bottom of it, so a label that wraps pushes its own
+     text up rather than shoving its control out of line. */
+  align-items: stretch;
+}
+
+/* ---- controls ---- */
+
+/* Keys: raised, with a dark edge below, and they go down when pressed. */
+button.btn {
+  appearance: none;
+  border: 1px solid var(--line-2);
+  border-bottom-color: #0a0c10;
+  background: linear-gradient(180deg, var(--panel-3), var(--panel-2));
+  color: var(--text);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 500;
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-key);
+  cursor: pointer;
+  min-height: 44px;
+  box-shadow: inset 0 1px 0 var(--bezel-hi), 0 2px 0 #0a0c10;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+}
+
+button.btn:hover:not(:disabled) { border-color: var(--vfd-dim); color: var(--text); }
+button.btn:active:not(:disabled) { transform: translateY(1px); box-shadow: inset 0 1px 0 var(--bezel-hi), 0 1px 0 #0a0c10; }
+button.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* A lit key: the action the panel is waiting for. */
+button.btn.primary {
+  background: linear-gradient(180deg, #ffc866, #e69a2a);
+  border-color: #b8791d;
+  border-bottom-color: #5a3a0a;
+  color: var(--accent-ink);
+  font-weight: 700;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.35);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 0 #5a3a0a, 0 0 12px var(--vfd-glow);
+}
+
+button.btn.danger { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 55%, var(--line-2)); }
+
+/*
+ * Destructive: an action that cannot be undone from here. A full red
+ * outline rather than the muted one, so Delete does not read as one more
+ * button in the row beside Disable.
+ */
+button.btn.destructive {
+  border-color: var(--bad);
+  border-bottom-color: color-mix(in srgb, var(--bad) 60%, #0a0c10);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bad) 30%, transparent), inset 0 1px 0 var(--bezel-hi), 0 2px 0 #0a0c10;
+}
+button.btn.destructive:hover:not(:disabled) {
+  border-color: var(--bad);
+  color: var(--bad);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--bad) 16%, var(--panel-3)), var(--panel-2));
+}
+
+/*
+ * Lining up a row of settings turned out to need this much.
+ *
+ * Bottom-aligning the grid items was not enough, and nor was setting a height
+ * on the controls: Safari sizes a range input by its own rules and ignores
+ * ours, so the fields ended up different heights and their labels landed on
+ * different lines. Every control therefore sits inside a fixed-height box,
+ * and the field stretches to the row. Nothing about a control's own intrinsic
+ * size can push a row out of line now.
+ */
+/*
+ * label.field sets its own display, which beats the browser's default rule
+ * for the hidden attribute — a hidden field stayed on screen. The practice
+ * controls are shown and hidden by mode, so this has to hold.
+ */
+[hidden] { display: none !important; }
+
+label.field {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+label.field > .control {
+  display: flex;
+  align-items: center;
+  height: 44px;
+}
+
+label.field > .control > * {
+  width: 100%;
+  margin: 0;
+}
+label.field > span.label-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+label.field > span.label-row b { color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+input[type='range'] {
+  width: 100%;
+  /* The .control box around it is what guarantees the row lines up; this is
+     the touch target, which at the old 28px was below the comfortable
+     minimum on a phone. */
+  height: 44px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+select, input[type='text'], input[type='number'], input[type='email'], input[type='password'] {
+  width: 100%;
+  background: var(--glass-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.55rem 0.6rem;
+  font: inherit;
+  min-height: 44px;
+  box-shadow: inset 0 2px 4px var(--bezel-lo);
+}
+select option { background: var(--panel-2); }
+
+fieldset {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.8rem 0.8rem;
+  margin: 0.5rem 0 0.9rem;
+  box-shadow: inset 0 1px 0 var(--bezel-hi);
+}
+legend { padding: 0 0.3rem; }
+
+.radio-row { display: flex; flex-wrap: wrap; gap: 0.9rem; }
+.radio-row label { display: flex; gap: 0.4rem; align-items: center; font-size: 0.95rem; }
+
+/* ---- badges ---- */
+
+/* Indicators: an LED beside an engraved legend and its reading. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.86rem;
+  letter-spacing: 0.04em;
+  font-variant-caps: all-small-caps;
+  padding: 0.24rem 0.6rem 0.24rem 0.5rem;
+  border-radius: var(--radius-key);
+  border: 1px solid var(--line);
+  background: var(--glass-2);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 1px 3px var(--bezel-lo);
+}
+.badge::before {
+  content: '';
+  width: 0.5rem; height: 0.5rem;
+  border-radius: 50%;
+  background: #3a3f48;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.6);
+  flex: none;
+}
+.badge b { color: var(--text); font-weight: 600; font-variant-caps: normal; letter-spacing: 0.02em; font-size: 0.8rem; }
+.badge.good::before { background: var(--good); box-shadow: 0 0 6px var(--good); }
+.badge.warn::before { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+.badge.bad::before  { background: var(--bad);  box-shadow: 0 0 6px var(--bad); }
+.badge.good b { color: var(--good); }
+.badge.warn b { color: var(--warn); }
+.badge.bad b  { color: var(--bad); }
+
+/* ---- drill display ---- */
+
+/* A display: dark glass, amber characters with a little glow. */
+.readout {
+  font-family: var(--mono);
+  font-size: clamp(1.1rem, 4.5vw, 1.6rem);
+  letter-spacing: 0.18em;
+  color: var(--vfd);
+  text-shadow: 0 0 8px var(--vfd-glow);
+  background:
+    repeating-linear-gradient(180deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, var(--glass), var(--glass-2));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem;
+  min-height: 3.6rem;
+  overflow-wrap: anywhere;
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,181,69,0.06);
+}
+
+.readout.answer { letter-spacing: 0.12em; }
+.readout .pending {
+  /* Placeholder prose, not copied characters — drop the monospace and the
+     wide letter spacing the readout uses for Morse text. */
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 1rem;
+  letter-spacing: normal;
+}
+.readout .hit { color: var(--good); text-shadow: 0 0 6px rgba(69,209,107,0.5); }
+.readout .miss { color: var(--bad); text-decoration: underline wavy; text-shadow: 0 0 6px rgba(255,90,90,0.5); }
+.readout .playing { color: #fff1d6; }
+.readout .pending { text-shadow: none; }
+
+.keying-lamp {
+  display: inline-block;
+  width: 1.1rem; height: 1.1rem;
+  border-radius: 50%;
+  border: 2px solid var(--line-2);
+  background: radial-gradient(circle at 40% 35%, #4a2a0a, #2a1a08);
+  vertical-align: middle;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+}
+.keying-lamp.on {
+  background: radial-gradient(circle at 40% 35%, #fff0c8, var(--vfd) 60%);
+  border-color: var(--vfd-dim);
+  box-shadow: 0 0 10px var(--vfd-glow), 0 0 22px var(--vfd-glow);
+}
+
+/* The key pad: a matte rubber surface set into the panel. */
+.paddle-pad {
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--muted);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.03), transparent 60%),
+    var(--panel-2);
+  box-shadow: inset 0 3px 10px var(--bezel-lo), inset 0 0 0 1px rgba(255,255,255,0.02);
+  user-select: none;
+  touch-action: none;
+  cursor: crosshair;
+}
+.paddle-pad.armed { border-color: var(--vfd-dim); color: var(--text); box-shadow: inset 0 3px 10px var(--bezel-lo), 0 0 0 1px rgba(255,181,69,0.25), 0 0 14px rgba(255,181,69,0.15); }
+.paddle-pad.armed.held { border-color: var(--warn); box-shadow: inset 0 3px 10px var(--bezel-lo), 0 0 0 1px rgba(255,181,69,0.6); }
+.paddle-pad.armed.held .pad-title { color: var(--warn); }
+.paddle-pad { position: relative; -webkit-user-select: none; -webkit-touch-callout: none; }
+.paddle-pad .pad-title, .paddle-pad .hint { position: relative; z-index: 1; pointer-events: none; }
+/* The two touch paddles. Drawn only where a finger is the likely input;
+   with a mouse the pad is one surface and the buttons decide. */
+.pad-half {
+  display: none;
+  position: absolute; top: 0; bottom: 0; width: 50%;
+  align-items: flex-end; justify-content: center;
+  padding-bottom: 0.4rem;
+  font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; font-variant-caps: all-small-caps;
+  color: var(--muted); opacity: 0.7;
+  pointer-events: none;
+}
+.pad-half.dit { left: 0; border-right: 1px solid var(--line-2); }
+.pad-half.dah { right: 0; }
+.pad-half.held { background: color-mix(in srgb, var(--accent) 25%, transparent); opacity: 1; color: var(--text); }
+@media (pointer: coarse) {
+  .paddle-pad.armed:not(.straight) .pad-half { display: flex; }
+  /* Room for two thumbs. */
+  .paddle-pad.armed { padding: 2.6rem 1rem 2rem; min-height: 9rem; }
+}
+
+/* ---- tables ---- */
+
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.scroll-x { overflow-x: auto; }
+
+.matrix { font-family: var(--mono); font-size: 0.8rem; width: auto; }
+.matrix th:first-child { white-space: nowrap; }
+.matrix th, .matrix td {
+  padding: 0.3rem 0.5rem;
+  text-align: center;
+  border: 1px solid var(--line);
+  min-width: 2.4rem;
+}
+.matrix th:first-child { text-align: right; white-space: nowrap; }
+.matrix td.self { color: var(--muted); }
+.matrix td.conf { background: color-mix(in srgb, var(--bad) 22%, transparent); font-weight: 700; }
+
+/* Timing comparison bars (RFP §5) */
+.bars { display: grid; gap: 3px; }
+/*
+ * Timing report: one block per kind of element, each drawn twice so the
+ * comparison needs no legend. Everything is labelled in words and carries
+ * its own number, because an unlabelled bar is a decoration.
+ */
+.flag-warn { color: var(--warn); }
+
+.diagnosis {
+  margin: 0 0 0.8rem;
+  padding: 0.7rem 0.9rem;
+  border-left: 3px solid var(--accent);
+  background: var(--panel-2);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 0.95rem;
+}
+.timing-report { display: flex; flex-direction: column; gap: 0.85rem; }
+.tr-row { display: flex; flex-direction: column; gap: 0.3rem; }
+.tr-head { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+.tr-label { font-weight: 600; font-size: 0.92rem; }
+.tr-verdict { font-size: 0.8rem; }
+.tr-verdict.good { color: var(--good); }
+.tr-verdict.bad { color: var(--bad); }
+.tr-verdict.muted { color: var(--muted); }
+.tr-bars { display: flex; flex-direction: column; gap: 0.2rem; }
+.tr-line { display: grid; grid-template-columns: 5.5rem 1fr; gap: 0.5rem; align-items: center; }
+.tr-meter { display: flex; align-items: center; gap: 0.45rem; }
+.tr-key { font-size: 0.78rem; color: var(--muted); text-align: right; }
+.tr-bar { height: 13px; border-radius: 3px; min-width: 2px; flex: 0 0 auto; }
+.tr-ideal { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+.tr-you.good { background: var(--good); }
+.tr-you.bad { background: var(--bad); }
+.tr-you.muted { background: var(--muted); }
+.tr-num { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+.tr-none { font-size: 0.78rem; color: var(--muted); }
+
+.element-detail { margin-top: 1.2rem; border-top: 1px solid var(--line); padding-top: 0.6rem; }
+.element-detail summary { cursor: pointer; font-size: 0.88rem; color: var(--muted); padding: 0.3rem 0; }
+.bar-char { font-weight: 700; color: var(--text); font-family: var(--mono); }
+.bar-element { color: var(--muted); }
+.bar-row.char-start { margin-top: 0.4rem; }
+.bar-actual.missing { background: transparent; }
+.bar-row { display: grid; grid-template-columns: 1.4rem 1.2rem 1fr; gap: 0.4rem; align-items: center; font-size: 0.75rem; color: var(--muted); }
+.bar-track { position: relative; height: 16px; background: var(--panel-2); border-radius: 3px; }
+.bar-ideal { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--accent) 30%, transparent); border-radius: 3px; }
+.bar-actual { position: absolute; top: 4px; bottom: 4px; left: 0; background: var(--good); border-radius: 2px; }
+.bar-actual.off { background: var(--warn); }
+.bar-actual.bad { background: var(--bad); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.notice {
+  border-left: 3px solid var(--accent);
+  background: var(--panel-2);
+  box-shadow: inset 0 1px 0 var(--bezel-hi);
+  padding: 0.7rem 0.9rem;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+.notice.warn { border-left-color: var(--warn); }
+.notice.bad { border-left-color: var(--bad); }
+.notice.good { border-left-color: var(--good); }
+
+kbd {
+  font-family: var(--mono);
+  font-size: 0.82em;
+  background: linear-gradient(180deg, var(--panel-3), var(--panel-2));
+  border: 1px solid var(--line-2);
+  border-bottom: 2px solid #0a0c10;
+  border-radius: 4px;
+  padding: 0.05em 0.35em;
+  color: var(--text);
+}
+
+@media (max-width: 30rem) {
+  .shell { padding: 0.75rem 0.75rem 3rem; }
+  .panel { padding: 0.85rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ---- Help page ---- */
+
+.toc { margin: 0; padding-left: 1.1rem; columns: 2; column-gap: 2rem; }
+.toc li { margin: 0.2rem 0; break-inside: avoid; }
+.toc a { color: var(--accent); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.manual-links { margin-top: 0.6rem; }
+.manual-links a { color: var(--vfd); font-weight: 700; text-decoration: none; padding: 0.1rem 0.45rem; border: 1px solid var(--bezel-hi); border-radius: 4px; }
+.manual-links a:hover { text-decoration: underline; }
+
+.panel h3 {
+  font-size: 0.95rem;
+  margin: 1.4rem 0 0.3rem;
+  color: var(--text);
+}
+.panel h3:first-of-type { margin-top: 0.8rem; }
+.panel h4 {
+  font-size: 0.88rem;
+  margin: 1.1rem 0 0.2rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.panel p { margin: 0.4rem 0 0.7rem; }
+
+.steps { margin: 0.4rem 0 0.8rem; padding-left: 1.3rem; }
+.steps li { margin: 0.5rem 0; }
+
+/* Clickable Morse chart */
+.morse-grid {
+  display: grid;
+  /* Wide enough for the longest pattern (SOS, nine elements) on one line. */
+  grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+  gap: 0.4rem;
+  margin: 0.5rem 0 0.9rem;
+}
+.morse-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.3rem;
+  min-height: 48px;
+  background: linear-gradient(180deg, var(--panel-3), var(--panel-2));
+  border: 1px solid var(--line-2);
+  border-bottom-color: #0a0c10;
+  border-radius: var(--radius-key);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 var(--bezel-hi), 0 2px 0 #0a0c10;
+}
+.morse-tile:hover { border-color: var(--vfd-dim); }
+.morse-tile:active { transform: translateY(1px); box-shadow: inset 0 1px 0 var(--bezel-hi), 0 1px 0 #0a0c10; }
+.morse-char { font-weight: 600; font-size: 1rem; }
+.morse-pattern {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.order-list {
+  font-family: var(--mono);
+  letter-spacing: 0.08em;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.qso-example {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 0.8rem 0.9rem;
+  margin: 0.5rem 0 0.9rem;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.glossary { margin: 0.4rem 0 0; }
+.glossary dt { font-weight: 600; margin-top: 0.9rem; }
+.glossary dd { margin: 0.15rem 0 0; color: var(--muted); }
+
+td.mono { font-family: var(--mono); letter-spacing: 0.1em; color: var(--accent); }
+
+@media (max-width: 34rem) {
+  .toc { columns: 1; }
+  .morse-grid { grid-template-columns: repeat(auto-fill, minmax(4.2rem, 1fr)); }
+}
+
+/* ---- QSO transcript ---- */
+
+.transcript {
+  background: linear-gradient(180deg, var(--glass), var(--glass-2));
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.8rem;
+  min-height: 9rem;
+  max-height: 22rem;
+  overflow-y: auto;
+  font-size: 0.9rem;
+}
+
+.qso-line {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0.6rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+}
+.qso-line:last-child { border-bottom: none; }
+
+.qso-who {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+  padding-top: 0.1rem;
+  overflow-wrap: anywhere;
+}
+.qso-line.student .qso-who { color: var(--accent); }
+
+.qso-text {
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+  color: var(--vfd);
+  text-shadow: 0 0 5px var(--vfd-glow);
+}
+.qso-line.student .qso-text { color: #d9dde3; text-shadow: none; }
+
+@media (max-width: 30rem) {
+  .qso-line { grid-template-columns: 1fr; gap: 0.1rem; }
+}
+
+.sending-now {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  color: var(--accent);
+}
+.sending-now .keying-lamp { width: 0.8rem; height: 0.8rem; }
+
+.paddle-pad .pad-title { font-weight: 600; letter-spacing: 0.06em; font-variant-caps: all-small-caps; font-size: 1rem; }
+.paddle-pad.armed .pad-title { color: var(--accent); text-shadow: 0 0 8px var(--vfd-glow); }
+
+
+/* ---- On air (RFP §7) ---- */
+/* ---- the dial ---- */
+.dial-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.3rem 0 0.4rem; }
+.dial-row .btn { padding: 0.45rem 0.6rem; font-size: 0.85rem; }
+.dial-row .btn.step { min-width: 3.4rem; font-variant-numeric: tabular-nums; }
+.dial-group { display: flex; gap: 0.3rem; }
+/* The frequency display. */
+.dial-readout {
+  flex: 1 1 11rem;
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: clamp(1.3rem, 2.4vw, 1.9rem);
+  line-height: 1.1;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  text-align: center;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--vfd);
+  text-shadow: 0 0 10px var(--vfd-glow), 0 0 2px var(--vfd);
+  background:
+    repeating-linear-gradient(180deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, var(--glass), var(--glass-2));
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(255,181,69,0.06);
+  cursor: ns-resize;
+  user-select: none;
+}
+.dial-readout:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+.band-view input[type='range'] { width: 100%; margin: 0.1rem 0 0.4rem; }
+
+/* ---- the band scope ---- */
+/* The band scope: a panadapter behind glass. */
+.band-scope {
+  position: relative;
+  height: 14rem;
+  margin: 0.4rem 0 0.2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background:
+    repeating-linear-gradient(90deg, rgba(255,181,69,0.05) 0 1px, transparent 1px 12.5%),
+    repeating-linear-gradient(180deg, rgba(255,181,69,0.04) 0 1px, transparent 1px 25%),
+    linear-gradient(to top, rgba(255,181,69,0.08) 0, transparent 55%),
+    linear-gradient(180deg, var(--glass), var(--glass-2));
+  box-shadow: inset 0 2px 12px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(255,181,69,0.06);
+  overflow: hidden;
+  cursor: ew-resize;
+  touch-action: none;
+  user-select: none;
+}
+.band-scope:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+.scope-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.scope-tick {
+  position: absolute; bottom: 0; width: 1px; height: 0.5rem;
+  background: var(--vfd-dim); opacity: 0.8;
+}
+.scope-tick.major { height: 0.9rem; opacity: 1; background: var(--vfd); }
+.scope-tick-label {
+  position: absolute; bottom: 1rem;
+  transform: translateX(-50%);
+  font-size: 0.68rem; color: var(--vfd-dim);
+  font-family: var(--mono); font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.scope-passband {
+  position: absolute; top: 0; bottom: 0;
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  border-left: 1px solid rgba(255,181,69,0.35);
+  border-right: 1px solid rgba(255,181,69,0.35);
+  pointer-events: none;
+}
+.band-mark {
+  position: absolute;
+  bottom: 1.7rem;
+  width: 0.45rem;
+  height: calc(0.4rem + 1.2rem * var(--level, 0.5));
+  opacity: 0.85;
+  transform: translateX(-50%);
+  border: none;
+  border-radius: 0.2rem 0.2rem 0 0;
+  background: var(--muted);
+  opacity: 0.55;
+  padding: 0;
+  cursor: pointer;
+}
+.band-mark { background: var(--vfd-dim); opacity: 0.7; }
+.band-mark.audible { background: var(--vfd); opacity: 1; box-shadow: 0 0 8px var(--vfd-glow); }
+.band-mark.cq { box-shadow: 0 0 0 2px var(--good), 0 0 8px var(--vfd-glow); }
+.band-mark.tx { background: #fff1d6; box-shadow: 0 0 10px #fff1d6; }
+.band-mark.me { background: var(--text); opacity: 0.35; cursor: default; box-shadow: none; }
+.band-mark-label {
+  position: absolute;
+  transform: translateX(-50%);
+  font-family: var(--mono); font-size: 0.7rem; font-weight: 600;
+  color: var(--vfd);
+  text-shadow: 0 0 6px var(--vfd-glow);
+  padding: 0 0.2rem; border-radius: 0.2rem;
+  background: color-mix(in srgb, var(--glass) 85%, transparent);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 1;
+}
+.band-mark-label.cq::after { content: ' CQ'; color: var(--good); }
+.band-mark-label.me { color: var(--muted); font-weight: 400; }
+.band-cursor {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 1px;
+  opacity: 0.85;
+  transform: translateX(-50%);
+  background: var(--bad);
+  box-shadow: 0 0 6px var(--bad);
+  pointer-events: none;
+}
+.band-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; margin: 0.2rem 0 0.6rem; font-size: 0.75rem; color: var(--muted); }
+.band-legend span::before { content: ''; display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 0.15rem; margin-right: 0.3rem; vertical-align: -1px; background: var(--muted); }
+.band-legend .l-audible::before { background: var(--accent); }
+.band-legend .l-cq::before { background: var(--accent); box-shadow: 0 0 0 2px var(--good); }
+.band-legend .l-tx::before { background: #fff1d6; }
+.band-legend .l-me::before { background: var(--text); opacity: 0.4; }
+.band-legend .l-pass::before { background: color-mix(in srgb, var(--accent) 30%, transparent); border: 1px solid var(--line); }
+
+/* ---- heard ---- */
+/* An S-meter of ten LED segments. */
+.s-meter {
+  display: inline-block; width: 5.5rem; height: 0.55rem; vertical-align: middle;
+  border: 1px solid var(--line); border-radius: 2px; overflow: hidden; background: var(--glass-2);
+  box-shadow: inset 0 1px 2px var(--bezel-lo);
+}
+.s-meter i {
+  display: block; height: 100%; width: calc(100% * var(--level, 0));
+  background: repeating-linear-gradient(90deg, var(--vfd) 0 8%, transparent 8% 10%);
+  box-shadow: 0 0 6px var(--vfd-glow);
+}
+.station-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.8rem; }
+.station-row {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  box-shadow: inset 0 1px 0 var(--bezel-hi);
+}
+.station-row.partner { border-color: var(--vfd-dim); box-shadow: inset 0 1px 0 var(--bezel-hi), 0 0 10px rgba(255,181,69,0.15); }
+.station-row b.mono, .log-row b.mono, .admin-row b.mono { color: var(--vfd); text-shadow: 0 0 6px var(--vfd-glow); letter-spacing: 0.06em; }
+.station-main { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.station-main .hint { margin: 0; }
+
+.about-line { display: block; width: 100%; }
+.link-line { display: block; width: 100%; font-variant-numeric: tabular-nums; }
+.link-line.bad { color: var(--bad); }
+
+/* ---- on air, narrow screens ---- */
+@media (max-width: 34rem) {
+  .dial-row { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .dial-row .dial-readout { grid-column: 1 / -1; order: -1; font-size: 1.9rem; }
+  .dial-row .dial-group { display: contents; }
+  .dial-row .btn.step { min-width: 0; padding: 0.5rem 0.2rem; }
+  .band-scope { height: 6.5rem; }
+  .band-mark-label { font-size: 0.62rem; }
+}
+
+/* ---- the log ---- */
+.log-list { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.7rem; }
+.log-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; padding: 0.3rem 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+.log-row .hint { margin: 0; }
+.log-exchange { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; width: 100%; }
+.log-exchange input { min-height: 34px; padding: 0.3rem 0.5rem; font-size: 0.85rem; }
+.log-exchange input.rst { width: 6.5rem; font-family: var(--mono); text-transform: uppercase; }
+.log-exchange input.log-note { flex: 1 1 12rem; }
+.log-status.bad { color: var(--bad); }
+
+/* ---- account and administration ---- */
+.account-details > summary { cursor: pointer; list-style: none; }
+.account-details > summary h2 { margin: 0; border: none; padding: 0; font-variant-caps: all-small-caps; letter-spacing: 0.1em; font-size: 0.88rem; font-weight: 600; color: var(--engrave); }
+.account-details > summary::-webkit-details-marker { display: none; }
+.account-details > summary h2::before { content: '\25B8  '; color: var(--muted); font-size: 0.8em; }
+.account-details[open] > summary h2::before { content: '\25BE  '; }
+.profile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: 0.4rem 1rem; margin-bottom: 0.6rem; }
+.profile-grid label.field { margin: 0; }
+.admin-list { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.9rem; }
+.admin-row {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 0.7rem; border: 1px solid var(--line); border-radius: 0.5rem;
+}
+.admin-row.attention { border-color: var(--warn); }
+/* Deleted accounts: kept so the logs have something to point at, folded away. */
+.admin-deleted { margin: -0.4rem 0 0.9rem; }
+.admin-deleted > summary { cursor: pointer; padding: 0.3rem 0; }
+.admin-deleted > summary::marker { color: var(--muted); }
+.admin-deleted .admin-row { opacity: 0.7; }
+.transcript-text { white-space: pre-wrap; word-break: break-all; font-size: 0.8rem; margin: 0.3rem 0 0; max-height: 12rem; overflow: auto; }
+.band-view > div > .row.end { margin-top: 0.4rem; }
+
+/* ---- the VFO: readout, steps and the knob ---- */
+.vfo { display: flex; gap: 1rem; align-items: center; margin: 0.4rem 0 0.2rem; }
+.vfo-main { flex: 1 1 auto; min-width: 0; }
+.knob {
+  position: relative;
+  flex: none;
+  width: 6.5rem; height: 6.5rem;
+  margin: 0.4rem 0.2rem 1.6rem;
+  border-radius: 50%;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  outline-offset: 4px;
+}
+.knob.turning { cursor: grabbing; }
+/* The bezel ring the knob sits in. */
+.knob-ring {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, transparent 58%, #0a0c10 59%, #2a313b 66%, #12161c 70%);
+  box-shadow: 0 3px 10px var(--bezel-lo);
+}
+/* Brushed cap: concentric grain and a highlight from the top left. */
+.knob-cap {
+  position: absolute; inset: 12%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255,255,255,0.18), transparent 45%),
+    repeating-radial-gradient(circle at 50% 50%, #2b323c 0 1px, #232932 1px 3px),
+    #262d38;
+  box-shadow: inset 0 -3px 6px rgba(0,0,0,0.6), inset 0 2px 3px rgba(255,255,255,0.08), 0 4px 10px rgba(0,0,0,0.7);
+  transition: transform 60ms linear;
+}
+.knob-dimple {
+  position: absolute; top: 9%; left: 50%;
+  width: 14%; height: 14%;
+  margin-left: -7%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #0a0c10, #1a1f27 70%);
+  box-shadow: inset 0 2px 3px rgba(0,0,0,0.9), 0 0 6px var(--vfd-glow);
+}
+.knob-legend {
+  position: absolute; left: 50%; bottom: -1.3rem;
+  transform: translateX(-50%);
+  font-size: 0.7rem; letter-spacing: 0.18em; color: var(--engrave); font-weight: 600;
+}
+@media (max-width: 34rem) {
+  .vfo { flex-direction: column; align-items: stretch; }
+  .knob { width: 10rem; height: 10rem; margin: 0.6rem auto 1.4rem; }
+  .band-scope { height: 11rem; }
+}
+
+/* ---- certificate (RFD A25) ---------------------------------------------
+ * A4 landscape. The furniture is the ordinary grammar of a certificate — a
+ * ruled border, a large title over a spaced subtitle, a certifying sentence,
+ * a seal, and rules to sign under — drawn here in the application's own
+ * amber and ink rather than borrowed from anywhere.
+ */
+.certificate { margin: 0.6rem 0 0; }
+.cert-sheet {
+  max-width: 58rem; margin: 0 auto; padding: 0.6rem;
+  border: 1px solid var(--line-2); border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  box-shadow: inset 0 1px 0 var(--bezel-hi), 0 2px 10px var(--bezel-lo);
+}
+/* The inner rule: two lines, the outer one lighter, which is what makes a
+   printed border read as deliberate rather than as a box. */
+.cert-frame {
+  position: relative;
+  border: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  outline-offset: 3px;
+  padding: 2.2rem 2.6rem 1.6rem;
+  text-align: center;
+}
+
+.cert-head { margin: 0 0 1.4rem; }
+.cert-title {
+  margin: 0; font-size: 2.6rem; line-height: 1; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--text);
+}
+.cert-sub {
+  margin: 0.45rem 0 0; font-size: 0.95rem; letter-spacing: 0.42em;
+  text-transform: uppercase; color: var(--accent);
+}
+
+/*
+ * The certificate's own paragraphs, scoped to `.certificate`.
+ *
+ * NOT decoration. `.panel p { margin: 0.4rem 0 0.7rem }` is (0,1,1) and these
+ * rules were (0,1,0), so wherever the sheet is rendered inside a panel \u2014 and
+ * "Your account" is `<details class="panel account-details">` \u2014 the panel won
+ * and set every margin here, including left and right. That killed the `auto`
+ * on `.cert-statement`, so the statement sat flush against the frame's left
+ * edge with all the free space on the right: 174px off centre on a 908px
+ * sheet, while the title, the name, the seal and the fields all centred
+ * correctly. It read as a centring bug and was a specificity one.
+ *
+ * Scoping to `.certificate` makes these (0,2,0) and the sheet now renders the
+ * same wherever it is put. Anything added here later needs the same prefix.
+ */
+.certificate .cert-lead { margin: 0 0 0.5rem; font-size: 0.8rem; letter-spacing: 0.26em; text-transform: uppercase; color: var(--muted); }
+.cert-name {
+  margin: 0 0 0.3rem; font-size: 2.2rem; line-height: 1.15; font-weight: 700;
+  font-family: Georgia, "Times New Roman", serif; color: #fff;
+}
+.certificate .cert-under { margin: 0 0 1.2rem; color: var(--muted); }
+.cert-under b { color: var(--accent); letter-spacing: 0.1em; }
+
+/*
+ * `text-wrap: balance` is doing real work here, not polish.
+ *
+ * The frame centres everything, and a centred paragraph is judged by the
+ * SHAPE of the block, not by whether each line is centred. Filling each line
+ * greedily gave a full first line, a nearly full second and a short third,
+ * which reads as crooked even though all three share a midpoint to the
+ * pixel. Balancing evens the line lengths and the block squares up.
+ *
+ * Browsers that do not know the property ignore it and the paragraph is
+ * exactly as it was, so there is nothing to fall back to.
+ */
+.certificate .cert-statement {
+  margin: 0 auto; max-width: 40rem; line-height: 1.7;
+  text-wrap: balance;
+}
+.cert-statement b { color: #fff; }
+
+/* Date, stamp, serial — the three things a reader looks for at the foot.
+   The value sits ON the rule and the label beneath it, the way a signed form
+   reads; the stamp between them is the QR square itself. */
+.cert-sign { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin: 1.8rem 0 1rem; }
+.cert-field { flex: 1 1 0; max-width: 15rem; }
+.cert-field-value { display: block; margin-bottom: 0.3rem; }
+.cert-rule { border-bottom: 1px solid var(--line-2); }
+.cert-field-label {
+  display: block; margin-top: 0.3rem;
+  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
+}
+
+.cert-stamp { position: relative; flex: 0 0 auto; width: 9.6rem; height: 9.6rem; color: var(--accent); }
+.cert-stamp-ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* The square sits inside the inner rule, not under the lettering. */
+.cert-stamp-qr {
+  position: absolute; inset: 30%; display: flex; align-items: center; justify-content: center;
+}
+.cert-stamp-qr svg { width: 100%; height: 100%; display: block; background: #fff; }
+
+/* Same reason: the footer broke with one short line under a full one. */
+.certificate .cert-small { margin: 0; font-size: 0.72rem; line-height: 1.5; color: var(--muted);
+  text-wrap: balance; }
+
+/* The certificate is lifted out to the body while printing (certificate.ts). */
+body.printing-certificate > *:not(.certificate) { display: none !important; }
+
+/* Your certificates, in the account panel. */
+.cert-list { display: grid; gap: 0.35rem; margin: 0 0 0.7rem; }
+.cert-row {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+  padding: 0.45rem 0.6rem;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.cert-row .mono { font-weight: 600; letter-spacing: 0.04em; }
+
+@media print {
+  @page { size: A4 landscape; margin: 10mm; }
+  /*
+   * `padding: 0` as well as `margin: 0`, and it is not belt and braces.
+   * `.cert-sheet` is 190mm tall, which is exactly A4 landscape less the
+   * 10mm margins \u2014 so any padding left on the body pushes the sheet over
+   * the page and the printer produces a second, almost empty one. The
+   * application itself never had body padding (`.shell` carries it, and
+   * `.shell` is hidden while printing), so this went unnoticed until a
+   * throwaway page with `body { padding: 2rem }` rendered the certificate
+   * and printed two pages. The sheet should print alone from any host page.
+   */
+  body { background: #fff; margin: 0; padding: 0; }
+  .no-print, .no-print * { display: none !important; }
+  .certificate { margin: 0; }
+  .cert-sheet {
+    max-width: none; border: 0; border-radius: 0; background: #fff;
+    box-shadow: none; color: #000; padding: 0; height: 190mm;
+  }
+  .cert-frame {
+    height: 100%; padding: 14mm 16mm 10mm;
+    border-color: #8a6524; outline-color: #b99a5c;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .cert-title, .cert-name, .cert-statement b { color: #000; }
+  .cert-sub, .cert-under b, .cert-stamp { color: #8a6524; }
+  .cert-lead, .cert-under, .cert-small, .cert-field-label { color: #444; }
+  .cert-rule { border-bottom-color: #666; }
+  .cert-stamp { width: 40mm; height: 40mm; }
+  .cert-statement { color: #000; }
+}
+
+/*
+ * A scanned QR square (#certificate=SERIAL), for certificates printed before
+ * the server began serving the verification page itself. Whoever followed
+ * that square came to check one fact and is probably not a member at all, so
+ * everything that belongs to a member goes: the header and its "Enable
+ * sound", the tab bar, the update banner and the footer about practice.
+ */
+body.verifying .top,
+body.verifying .tabs,
+body.verifying .update-banner,
+body.verifying .shell > footer { display: none; }
+body.verifying #panel { margin-top: 0; }
+
+/* ============================================================
+ * The landing view (RFD A38).
+ *
+ * Same chassis as everything else — every colour below is one of the
+ * tokens at the top of this file, and there is no new palette. The one
+ * departure is the scale of the wordmark and the keys: a first-time
+ * visitor is being shown what this is, not operating it yet.
+ *
+ * Nothing here loads anything. No background-image, no @font-face, no
+ * @import. The hero is a canvas the application draws (A38 requires that
+ * opening this view make no request of any kind, because the privacy
+ * notice says a visitor without an account talks to nothing at all).
+ * ============================================================ */
+
+/* Like .verifying: the member's furniture is not wanted in front of
+   somebody who does not yet know what the application is. */
+body.landing-open .top,
+body.landing-open .tabs,
+body.landing-open .shell > footer { display: none; }
+body.landing-open #panel { margin-top: 0; }
+
+.landing { max-width: 880px; margin: 0 auto; }
+
+/* ---- the display glass ---- */
+.landing-hero {
+  position: relative; overflow: hidden;
+  border: 1px solid var(--line-2); border-radius: var(--radius);
+  background: var(--glass);
+  box-shadow: inset 0 1px 0 var(--bezel-hi), 0 2px 10px var(--bezel-lo);
+}
+.landing-scope { display: block; width: 100%; height: 262px; }
+@media (max-width: 560px) { .landing-scope { height: 228px; } }
+/* Dark where the words are, clear where the code is. */
+.landing-hero::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(to bottom,
+      rgba(7, 9, 11, 0.30) 0%, rgba(7, 9, 11, 0.10) 26%,
+      rgba(7, 9, 11, 0.74) 52%, rgba(7, 9, 11, 0.93) 100%),
+    radial-gradient(120% 70% at 22% 100%, rgba(255, 181, 69, 0.10), transparent 62%);
+}
+.landing-hero::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px;
+  background: var(--bezel-hi); z-index: 3;
+}
+.landing-words {
+  position: absolute; inset: 0; z-index: 2;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 18px 20px 20px; gap: 7px;
+}
+.landing-wordmark {
+  margin: 0; font-family: var(--mono);
+  font-size: clamp(30px, 8.5vw, 58px); line-height: 1;
+  letter-spacing: 0.1em; font-weight: 600; color: var(--vfd);
+  text-shadow: 0 0 2px var(--vfd), 0 0 18px var(--vfd-glow), 0 0 44px rgba(255, 181, 69, 0.22);
+}
+.landing-tagline {
+  margin: 0; max-width: 34em; color: var(--text);
+  font-size: clamp(14px, 2.6vw, 17px);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+/* What the glass above is actually sending, in three states: sent, being
+   sent, still to come. */
+.landing-decode {
+  position: absolute; left: 0; right: 0; top: 0; z-index: 2;
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 9px 20px 10px; font-family: var(--mono); font-size: 12px;
+  background: linear-gradient(to bottom, rgba(7, 9, 11, 0.88), rgba(7, 9, 11, 0));
+}
+.landing-decode .cap {
+  color: var(--engrave); font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; white-space: nowrap;
+}
+.landing-decode .copy {
+  color: var(--vfd-dim); letter-spacing: 0.26em; white-space: nowrap; overflow: hidden;
+}
+.landing-decode .copy i { font-style: normal; color: var(--vfd); text-shadow: 0 0 10px var(--vfd-glow); }
+.landing-decode .copy b { color: #fff; font-weight: 600; text-shadow: 0 0 12px rgba(255, 255, 255, 0.5); }
+@media (max-width: 480px) { .landing-decode .cap { display: none; } .landing-decode { padding-left: 16px; } }
+
+/* ---- the whole course behind glass ---- */
+.landing-course {
+  margin: 14px 0 0; padding: 12px 14px 13px;
+  border: 1px solid var(--line-2); border-radius: var(--radius);
+  background: var(--glass-2);
+  box-shadow: inset 0 1px 0 var(--bezel-hi), inset 0 0 36px rgba(0, 0, 0, 0.6);
+}
+.landing-course .cap {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--engrave); margin-bottom: 9px;
+}
+.landing-course .cap em {
+  font-style: normal; color: var(--muted);
+  letter-spacing: 0.06em; text-transform: none; font-size: 11px;
+}
+.landing-chars { display: grid; grid-template-columns: repeat(20, 1fr); gap: 4px; }
+@media (max-width: 680px) { .landing-chars { grid-template-columns: repeat(10, 1fr); } }
+.landing-chars span {
+  text-align: center; font-family: var(--mono); font-size: 14px; line-height: 1.9;
+  color: #39434f; border-radius: 3px; background: rgba(255, 255, 255, 0.016);
+}
+.landing-chars span.lit {
+  color: var(--vfd); background: color-mix(in srgb, var(--accent) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 32%, transparent);
+  text-shadow: 0 0 9px var(--vfd-glow);
+}
+
+/* ---- the one action ---- */
+.landing-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 12px 0 0; }
+.landing-key {
+  font: 600 17px/1 system-ui, sans-serif; padding: 16px 28px;
+  border: 1px solid #c98e2f; border-radius: var(--radius-key);
+  color: var(--accent-ink); cursor: pointer;
+  background: linear-gradient(180deg, #ffc868, var(--accent) 55%, #e89c28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 3px 0 #8a5f17, 0 6px 16px rgba(0, 0, 0, 0.55);
+}
+.landing-key:active { transform: translateY(3px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+.landing-key-2 {
+  font: 500 15px/1 system-ui, sans-serif; padding: 15px 18px;
+  border: 1px solid var(--line-2); border-radius: var(--radius-key);
+  color: var(--text); cursor: pointer;
+  background: linear-gradient(180deg, var(--panel-3), var(--panel-2));
+  box-shadow: inset 0 1px 0 var(--bezel-hi), 0 3px 0 #0c0f13;
+}
+.landing-key-2:active { transform: translateY(3px); box-shadow: inset 0 1px 0 var(--bezel-hi); }
+.landing-free { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 7px; }
+.landing-free .led {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--good);
+  box-shadow: 0 0 8px rgba(69, 209, 107, 0.85); display: inline-block;
+}
+
+/* ---- the three who actually arrive: doors, not descriptions ---- */
+.landing-who { display: grid; gap: 10px; margin: 16px 0 0; grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 680px) { .landing-who { grid-template-columns: 1fr; } }
+.landing-door {
+  display: block; position: relative; text-align: left; font: inherit; cursor: pointer;
+  padding: 13px 15px 14px 18px; border: 1px solid var(--line); border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  box-shadow: inset 0 1px 0 var(--bezel-hi); color: var(--text);
+}
+.landing-door::before {
+  content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px;
+  border-radius: 0 3px 3px 0; background: var(--vfd-dim);
+}
+.landing-door:hover { border-color: var(--line-2); }
+.landing-door:hover::before { background: var(--vfd); box-shadow: 0 0 10px var(--vfd-glow); }
+.landing-door strong {
+  display: block; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--vfd); margin-bottom: 5px;
+}
+.landing-door p { margin: 0 0 9px; font-size: 14px; }
+.landing-door .go { font-size: 13px; color: var(--engrave); border-bottom: 1px solid var(--line-2); }
+.landing-door:hover .go { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ---- the manuals, each named in its own script ---- */
+.landing-cap {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--engrave); margin: 20px 0 0;
+}
+.landing-manuals { display: grid; gap: 10px; margin: 10px 0 0; grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 680px) { .landing-manuals { grid-template-columns: 1fr; } }
+.landing-manual {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 13px 16px; text-decoration: none; color: var(--text);
+  border: 1px solid var(--line-2); border-radius: var(--radius-key);
+  background: linear-gradient(180deg, var(--panel-3), var(--panel-2));
+  box-shadow: inset 0 1px 0 var(--bezel-hi), 0 2px 0 #0c0f13;
+}
+.landing-manual:hover { border-color: var(--accent); }
+.landing-manual .name { font-size: 19px; line-height: 1.2; }
+.landing-manual .meta {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); white-space: nowrap;
+}
+
+/* ---- who made it, and where the notice is ---- */
+.landing-colophon {
+  margin: 22px 0 0; padding-top: 12px; border-top: 1px solid var(--line);
+  font-size: 12.5px; color: var(--muted);
+}
+.landing-colophon p { margin: 0 0 3px; }
+.landing-colophon p:last-child { margin: 0; }
+.landing-colophon a { color: var(--muted); border-bottom: 1px solid var(--line); text-decoration: none; }
+.landing-colophon a:hover { color: var(--engrave); border-bottom-color: var(--line-2); }
+
+/* A checkbox and its label on one line — the four conditions (RFD A39). */
+.check { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
+.check input { accent-color: var(--accent); }

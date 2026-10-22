@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    # Pinned rather than -latest: GitHub moves the label to a new Ubuntu on
+    # 19 October 2026, and a CI run should not change under the project's feet.
+    runs-on: ubuntu-24.04
+    steps:
+      # v5 of both run on Node 24; v4 ran on Node 20, which GitHub deprecated.
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+      - run: npm ci
+      # The server has its own three dependencies, and the unit-test run
+      # covers server/tests too, so both installs are needed before testing.
+      - run: npm ci
+        working-directory: server
+      - name: Typecheck (client)
+        run: npm run lint
+      - name: Typecheck (server)
+        run: npm run typecheck
+        working-directory: server
+      - name: Unit tests
+        run: npm test
+      - name: Coverage (timing engine and decoder)
+        run: npm run coverage
+      - name: Production build (client)
+        run: npm run build
+      - name: Production build (server)
+        run: npm run build
+        working-directory: server

@@ -1,6 +1,6 @@
 {
   "name": "cw-trainer",
-  "version": "0.13.2",
+  "version": "0.13.3",
   "private": true,
   "type": "module",
   "description": "Browser-based Morse code (CW) training application \u2014 Phase 1",

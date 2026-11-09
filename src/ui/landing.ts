@@ -131,10 +131,22 @@ export function landingView(actions: LandingActions): View {
     canvas,
     el('div', { class: 'landing-decode' },
       el('span', { class: 'cap', text: 'On the band now' }), copyLine),
+    /*
+     * The page's one visible first-level heading (0.13.4). A search engine
+     * runs the script and indexes this view, not the static shell in
+     * index.html, which boot() clears; until 0.13.4 the only <h1> here was
+     * the shell's, hidden while this view is open. The wordmark and the
+     * first line beneath it are now one heading, so the words people search
+     * for are the words the heading says. The space between the two spans
+     * is what keeps them apart for a reader that ignores the styling.
+     */
     el('div', { class: 'landing-words' },
-      el('h2', { class: 'landing-wordmark', text: 'CW TRAINER' }),
+      el('h1', { class: 'landing-title' },
+        el('span', { class: 'landing-wordmark', text: 'CW TRAINER' }),
+        document.createTextNode(' '),
+        el('span', { class: 'landing-tagline', text: 'Learn and practice Morse code online, free.' })),
       el('p', { class: 'landing-tagline', text:
-        'Learn Morse code in your browser. Free, nothing to install, and no account needed to start practising.' })),
+        'Nothing to install, and no account needed to start practising.' })),
   );
 
   // ---- the course, laid out ----
@@ -192,10 +204,32 @@ export function landingView(actions: LandingActions): View {
     manual('./manual/CW-Trainer-User-Manual-AR.pdf', 'العربية', 47, 'ar'),
   );
 
+  // ---- how to learn, in plain words (0.13.4) ----
+  /*
+   * The same text as the static shell in index.html, which a reader without
+   * JavaScript sees. It belongs here as well because this view is what a
+   * search engine indexes. Every figure in it is one the course and the
+   * help page already state: 90% to unlock the next character, forty
+   * characters, fifteen minutes a day. Change them together.
+   */
+  const learn = el('section', { class: 'landing-learn' },
+    el('h2', { text: 'How to learn Morse code' }),
+    el('p', { text:
+      'The Koch method, which this trainer follows, starts you on two characters sent at full speed. ' +
+      'When you copy 90% of a session correctly, the next character is added, and so on until you ' +
+      'know all forty. Short, regular Morse code practice works better than long sessions: fifteen ' +
+      'minutes a day beats two hours on a Sunday.' }),
+    el('p', { text:
+      'As for how to read Morse code: learn each character as a sound pattern \u2014 \u201cdah-di-dah\u201d ' +
+      'for K \u2014 not as dots and dashes on paper, so you hear the letter without counting. Once you ' +
+      'can copy, practise sending with your keyboard, a straight key or an iambic paddle.' }),
+  );
+
   node.append(
     hero, course, actionRow, doors,
     el('p', { class: 'landing-cap', text: 'The beginner’s guide, with a screenshot of every tab' }),
     manuals,
+    learn,
     el('div', { class: 'landing-colophon' },
       el('p', {}, 'Made by Mohammad Bahrololoum (ex EP2MHB) · ',
         el('a', { href: 'https://www.mikroutik.com/', text: 'mikroutik.com' })),

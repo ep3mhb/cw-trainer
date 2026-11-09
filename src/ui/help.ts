@@ -180,7 +180,8 @@ export function helpView(ctx: Ctx): View {
         el('span', { text: '. You can close your account, and withdraw a certificate, yourself at any '
           + 'time \u2014 both are under "Your account" on the Settings tab.' })),
       el('p', { class: 'hint' },
-        el('span', { text: 'New here, or showing somebody else? ' }),
+        el('span', { text: 'New here, or showing somebody else? The welcome page ends with a short guide to how to '
+          + 'learn Morse code. ' }),
         (() => {
           const again = el('button', { class: 'btn', type: 'button', text: 'Open the welcome page' });
           again.addEventListener('click', () => {

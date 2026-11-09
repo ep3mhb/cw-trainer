@@ -1238,6 +1238,10 @@ body.landing-open #panel { margin-top: 0; }
   display: flex; flex-direction: column; justify-content: flex-end;
   padding: 18px 20px 20px; gap: 7px;
 }
+.landing-title { margin: 0; font: inherit; }
+.landing-title .landing-wordmark,
+.landing-title .landing-tagline { display: block; }
+.landing-title .landing-tagline { margin-top: 7px; }
 .landing-wordmark {
   margin: 0; font-family: var(--mono);
   font-size: clamp(30px, 8.5vw, 58px); line-height: 1;
@@ -1363,6 +1367,12 @@ body.landing-open #panel { margin-top: 0; }
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
   text-transform: uppercase; color: var(--muted); white-space: nowrap;
 }
+
+/* ---- how to learn, in plain words (0.13.4) ---- */
+.landing-learn { margin: 22px 0 0; }
+.landing-learn h2 { margin: 0 0 8px; font-size: 16px; font-weight: 600; color: var(--text); }
+.landing-learn p { margin: 0 0 8px; max-width: 46em; font-size: 14.5px; line-height: 1.6; color: var(--muted); }
+.landing-learn p:last-child { margin: 0; }
 
 /* ---- who made it, and where the notice is ---- */
 .landing-colophon {

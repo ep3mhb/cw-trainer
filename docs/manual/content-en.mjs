@@ -2,7 +2,7 @@
 import { ABBREVIATIONS, GLOSSARY, HANDOVER_SIGNALS, KEY_TYPES, PROSIGN_MISTAKES, PROSIGN_NOTES, Q_CODES } from '../../src/data/reference.ts';
 import { KOCH_ORDER, MORSE, PROSIGNS } from '../../src/core/morse.ts';
 
-export const VERSION = '0.11.0';
+export const VERSION = '0.14.0';
 const letters = Object.fromEntries(Object.entries(MORSE).filter(([c]) => /^[A-Z]$/.test(c)));
 const digits = Object.fromEntries(Object.entries(MORSE).filter(([c]) => /^[0-9]$/.test(c)));
 const punct = Object.fromEntries(Object.entries(MORSE).filter(([c]) => !/^[A-Z0-9]$/.test(c)));
@@ -11,13 +11,13 @@ export default {
   lang: 'en', dir: 'ltr', file: `CW-Trainer-User-Manual-EN-${VERSION}.pdf`,
   // The PDF's internal Title is what a search engine shows as the result
   // title, so it has to name the subject rather than only the product.
-  docTitle: 'CW Trainer — Morse code (CW) user manual',
+  docTitle: 'RESONIK CW Trainer — Morse code (CW) user manual',
   ui: { contents: 'Contents', chapter: 'Chapter', figure: 'Figure', page: 'Page', version: `Version ${VERSION}` },
   cover: {
     title: 'CW Trainer', subtitle: 'User manual',
     leds: ['Koch course', 'Sending practice', 'Simulated QSO', 'On air with others'],
     meta: [
-      `**Version ${VERSION}** · October 2026`,
+      `**Version ${VERSION}** · November 2026`,
       'The web application at **cw.mikroutik.com**',
       '© 2026 Mohammad Bahrololoum, ex EP2MHB',
     ],
@@ -27,7 +27,7 @@ export default {
     {
       title: 'Welcome',
       intro: [
-        'CW Trainer is a web application for learning and practising Morse code (CW). It teaches you to copy by ear with the Koch method, measures your sending on a real key, lets you work a simulated operator through a complete contact, and — once you sign in — puts you on a shared virtual band where you can work other members, live, with your own key.',
+        'RESONIK CW Trainer is a web application for learning and practising Morse code (CW). It teaches you to copy by ear with the Koch method, measures your sending on a real key, lets you work a simulated operator through a complete contact, and — once you sign in — puts you on a shared virtual band where you can work other members, live, with your own key.',
         'This manual describes every part of the application as it stands in version ' + VERSION + '. You do not need to read it from front to back: Chapter 2 gets you started in five minutes, and the rest is there for when you want to know what a control does or why it behaves the way it does.',
       ],
       sections: [
@@ -59,7 +59,7 @@ export default {
             { t: 'steps', items: [
               '**iPhone or iPad:** open the page in Safari, tap the Share button, then “Add to Home Screen”.',
               '**Android:** Chrome shows an install prompt, or use the browser menu → “Install app”.',
-              '**Desktop Chrome or Edge:** an install icon appears at the right of the address bar, or look under the browser menu for “Install CW Trainer”.',
+              '**Desktop Chrome or Edge:** an install icon appears at the right of the address bar, or look under the browser menu for “Install RESONIK CW Trainer”.',
             ] },
             { t: 'note', kind: 'warn', label: 'Working offline', text: 'Offline use needs the version served from the web address, not a file opened from your disk. Load the page once while connected and it works without a connection after that. If it does not, something is clearing your browsing data when the browser quits — “clear on exit” settings and some privacy extensions do this, and they take your practice history with them.' },
           ],

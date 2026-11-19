@@ -139,9 +139,9 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
  * build still loads (acceptance criterion 8).
  */
 export function parseEnvelope(raw: unknown): ExportEnvelope {
-  if (typeof raw !== 'object' || raw === null) throw new Error('Not a CW Trainer export file.');
+  if (typeof raw !== 'object' || raw === null) throw new Error('Not a RESONIK CW Trainer export file.');
   const o = raw as Record<string, unknown>;
-  if (o['format'] !== 'cw-trainer-export') throw new Error('Not a CW Trainer export file.');
+  if (o['format'] !== 'cw-trainer-export') throw new Error('Not a RESONIK CW Trainer export file.');
   const version = typeof o['version'] === 'number' ? o['version'] : 0;
   if (version < 1 || version > EXPORT_VERSION) {
     throw new Error(`Unsupported export version ${String(o['version'])}. This build reads versions 1 to ${EXPORT_VERSION}.`);

@@ -21,6 +21,7 @@ fs.mkdirSync(OUT, { recursive: true });
 const b64 = (p) => fs.readFileSync(p).toString('base64');
 const font = (family, file, weight) =>
   `@font-face{font-family:'${family}';font-weight:${weight};font-style:normal;src:url(data:font/woff2;base64,${b64(file)}) format('woff2');}`;
+const BRAND_LOGO = 'data:image/svg+xml;base64,' + fs.readFileSync(new URL('../../public/brand/resonik-logo-reversed.svg', import.meta.url)).toString('base64');
 const IMG = (name) => {
   const p = path.join(HERE, 'shots-jpg', name.replace(/\.png$/, '.jpg'));
   return `data:image/jpeg;base64,${b64(p)}`;
@@ -70,6 +71,7 @@ code{background:#eef0f4;padding:0 .3em;border-radius:3px;direction:ltr;unicode-b
    an opaque rectangle — which put a yellow square over the first letter of
    every cover label. Gradients are shading patterns and render everywhere. */
 .cover .led::before{content:'';display:inline-block;width:15px;height:15px;border-radius:50%;background:radial-gradient(circle,#ffb545 0,#ffb545 2.6px,rgba(255,181,69,.45) 3.4px,rgba(255,181,69,0) 7.5px);margin-inline-end:5px;margin-inline-start:-4px;vertical-align:middle;}
+.cover .plate img.brand{width:62mm;border:0;border-radius:0;margin:0 0 7mm;}
 .cover img{width:100%;border-radius:6px;border:1px solid #2a313c;display:block;}
 /* headings */
 h1.ch{font-size:22pt;margin:0 0 6mm;padding-bottom:3mm;border-bottom:2px solid var(--amber);break-after:avoid;line-height:1.25;}
@@ -184,7 +186,9 @@ function renderDoc(doc, pages, withMarkers = false) {
     return li('l1', String(cn), ch.title) + ch.sections.map((s, si) => li('l2', `${cn}.${si + 1}`, s.title)).join('');
   }).join('')}</ol></div>`;
 
-  const cover = `<div class="cover"><div class="plate"><h1>${esc(doc.cover.title)}</h1><p class="sub">${esc(doc.cover.subtitle)}</p><span class="vfd">7 018.90 kHz</span><div class="leds">${doc.cover.leds.map((l) => `<span class="led">${esc(l)}</span>`).join('')}</div></div><img src="${IMG('air-top.png')}" alt=""><div class="meta">${doc.cover.meta.map((m) => `<div>${inline(m)}</div>`).join('')}</div></div>`;
+  // 0.14.0: the cover carries the RESONIK logo (master artwork, reversed version for the dark panel),
+  // never retyped; the title beneath it is the product name.
+  const cover = `<div class="cover"><div class="plate"><img class="brand" src="${BRAND_LOGO}" alt="RESONIK"><h1>${esc(doc.cover.title)}</h1><p class="sub">${esc(doc.cover.subtitle)}</p><span class="vfd">7 018.90 kHz</span><div class="leds">${doc.cover.leds.map((l) => `<span class="led">${esc(l)}</span>`).join('')}</div></div><img src="${IMG('air-top.png')}" alt=""><div class="meta">${doc.cover.meta.map((m) => `<div>${inline(m)}</div>`).join('')}</div></div>`;
 
   return `<!doctype html><html lang="${doc.lang}" dir="${doc.dir}"><head><meta charset="utf-8"><title>${esc(doc.docTitle ?? `${doc.cover.title} — ${doc.cover.subtitle}`)}</title><style>${css(doc)}</style></head><body>${cover}${toc}${chapters}</body></html>`;
 }
@@ -194,7 +198,7 @@ async function build(lang) {
   const browser = await chromium.launch({ executablePath: process.env.PW_EXECUTABLE });
   const page = await browser.newPage();
   const footFont = font('Vazirmatn', `${FONTS}/vazirmatn/files/vazirmatn-arabic-400-normal.woff2`, 400) + font('Vazirmatn', `${FONTS}/vazirmatn/files/vazirmatn-latin-400-normal.woff2`, 400);
-  const footer = (d) => `<style>${footFont}</style><div style="width:100%;font-family:Vazirmatn,Arial,sans-serif;font-size:8pt;color:#6b7280;padding:0 18mm;display:flex;justify-content:space-between;direction:${d.dir};"><span>${esc(d.cover.title)} — ${esc(d.cover.subtitle)} · ${esc(d.ui.version)}</span><span>${esc(d.ui.page)} <span class="pageNumber"></span> / <span class="totalPages"></span></span></div>`;
+  const footer = (d) => `<style>${footFont}</style><div style="width:100%;font-family:Vazirmatn,Arial,sans-serif;font-size:8pt;color:#6b7280;padding:0 18mm;display:flex;justify-content:space-between;direction:${d.dir};"><span>RESONIK ${esc(d.cover.title)} — ${esc(d.cover.subtitle)} · ${esc(d.ui.version)}</span><span>${esc(d.ui.page)} <span class="pageNumber"></span> / <span class="totalPages"></span></span></div>`;
   const pdfOpts = { format: 'A4', printBackground: true, displayHeaderFooter: true, headerTemplate: '<span></span>', footerTemplate: footer(doc), margin: { top: '22mm', bottom: '22mm', left: '18mm', right: '18mm' } };
 
   // pass 1: find page numbers from the markers

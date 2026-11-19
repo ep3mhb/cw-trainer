@@ -142,6 +142,11 @@ export function landingView(actions: LandingActions): View {
      */
     el('div', { class: 'landing-words' },
       el('h1', { class: 'landing-title' },
+        /* 0.14.0: the product is RESONIK CW Trainer. The logo itself sits
+           above the hero on a plain ground (the brand guide forbids it on a
+           busy picture, and the band scope is one); the heading carries the
+           brand name as text for readers and crawlers. */
+        el('span', { class: 'sr-only', text: 'RESONIK ' }),
         el('span', { class: 'landing-wordmark', text: 'CW TRAINER' }),
         document.createTextNode(' '),
         el('span', { class: 'landing-tagline', text: 'Learn and practice Morse code online, free.' })),
@@ -199,9 +204,9 @@ export function landingView(actions: LandingActions): View {
       el('span', { class: 'name', text: name }),
       el('span', { class: 'meta', text: `${String(pages)} pages · PDF` }));
   const manuals = el('div', { class: 'landing-manuals' },
-    manual('./manual/CW-Trainer-User-Manual-EN.pdf', 'English', 54),
-    manual('./manual/CW-Trainer-User-Manual-FA.pdf', 'فارسی', 47, 'fa'),
-    manual('./manual/CW-Trainer-User-Manual-AR.pdf', 'العربية', 47, 'ar'),
+    manual('./manual/CW-Trainer-User-Manual-EN.pdf', 'English', 58),
+    manual('./manual/CW-Trainer-User-Manual-FA.pdf', 'فارسی', 52, 'fa'),
+    manual('./manual/CW-Trainer-User-Manual-AR.pdf', 'العربية', 51, 'ar'),
   );
 
   // ---- how to learn, in plain words (0.13.4) ----
@@ -225,13 +230,16 @@ export function landingView(actions: LandingActions): View {
       'can copy, practise sending with your keyboard, a straight key or an iambic paddle.' }),
   );
 
+  const brand = el('div', { class: 'landing-brand' },
+    el('img', { class: 'landing-logo', src: './brand/resonik-logo-reversed.svg', alt: 'RESONIK', width: '1142', height: '370' }));
+
   node.append(
-    hero, course, actionRow, doors,
+    brand, hero, course, actionRow, doors,
     el('p', { class: 'landing-cap', text: 'The beginner’s guide, with a screenshot of every tab' }),
     manuals,
     learn,
     el('div', { class: 'landing-colophon' },
-      el('p', {}, 'Made by Mohammad Bahrololoum (ex EP2MHB) · ',
+      el('p', {}, 'RESONIK CW Trainer · Made by Mohammad Bahrololoum (ex EP2MHB) · ',
         el('a', { href: 'https://www.mikroutik.com/', text: 'mikroutik.com' })),
       el('p', {}, 'Runs offline once loaded, and your practice stays in this browser. · ',
         el('a', { href: PRIVACY_URL, text: 'Privacy notice' })),

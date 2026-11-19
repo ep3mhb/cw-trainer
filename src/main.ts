@@ -353,7 +353,11 @@ async function boot(): Promise<void> {
       el(
         'header',
         { class: 'top' },
-        el('h1', {}, 'CW Trainer', el('span', { class: 'sub', text: 'Koch course, sending practice and progress — all in this browser' })),
+        el('h1', {},
+          // 0.14.0: the brand is the master logo, never retyped — the header's
+          // small-caps face would render it as "rESONiK". Product name follows.
+          el('img', { class: 'brand-logo', src: './brand/resonik-logo-reversed-tight.svg', alt: 'RESONIK', width: '950', height: '180' }),
+          ' CW Trainer', el('span', { class: 'sub', text: 'Koch course, sending practice and progress — all in this browser' })),
         el('div', { class: 'row' }, startAudioButton, statusRow),
       ),
       nav,
@@ -559,7 +563,7 @@ function watchForUpdates(registration: ServiceWorkerRegistration, banner: HTMLEl
     });
     clear(banner);
     banner.append(
-      el('span', { text: 'A new version of CW Trainer is ready.' }),
+      el('span', { text: 'A new version of RESONIK CW Trainer is ready.' }),
       el('span', { class: 'hint', text: 'Your practice history is not affected.' }),
       el('span', { class: 'row' }, reload, later),
     );

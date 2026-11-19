@@ -1157,7 +1157,7 @@ export function bandView(ctx: Ctx): View {
     exportButton.addEventListener('click', () => {
       const now = new Date();
       const out = adifExport(logged, {
-        myCallsign: me.callsign, programId: 'CW Trainer',
+        myCallsign: me.callsign, programId: 'RESONIK CW Trainer',
         programVersion: typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : 'dev', now,
       });
       downloadText(adifFileName(me.callsign, now), out.text, 'text/plain');

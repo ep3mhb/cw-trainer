@@ -56,7 +56,7 @@ export interface AdifExport {
   open: number;
 }
 
-const COMMENT = 'Practice contact on the CW Trainer virtual band, not an on-air QSO';
+const COMMENT = 'Practice contact on the RESONIK CW Trainer virtual band, not an on-air QSO';
 
 function field(name: string, value: string): string {
   return `<${name}:${String([...value].length)}>${value}`;
@@ -119,7 +119,7 @@ export function adifRecord(contact: LoggedContact, myCallsign: string): string |
 /** The whole file: header, then one line per contact, oldest first. */
 export function adifExport(contacts: readonly LoggedContact[], options: AdifOptions): AdifExport {
   const header = [
-    `CW Trainer contact log for ${options.myCallsign}`,
+    `RESONIK CW Trainer contact log for ${options.myCallsign}`,
     field('ADIF_VER', '3.1.4'),
     field('PROGRAMID', options.programId),
     field('PROGRAMVERSION', options.programVersion),

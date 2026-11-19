@@ -1,12 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="CW Trainer">
-  <rect width="512" height="512" rx="96" fill="#11161d"/>
-  <!-- C = -.-.   W = .--   rendered as dits and dahs -->
-  <g fill="#58a6ff">
-    <rect x="88"  y="180" width="132" height="44" rx="22"/>
-    <circle cx="268" cy="202" r="22"/>
-    <rect x="312" y="180" width="132" height="44" rx="22"/>
-    <circle cx="88"  cy="310" r="22" transform="translate(22 0)"/>
-    <rect x="152" y="288" width="132" height="44" rx="22"/>
-    <rect x="312" y="288" width="132" height="44" rx="22"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024.00 1024.00" width="1024" height="1024">
+<title>RESONIK CW Trainer</title>
+<rect width="1024.0" height="1024.0" rx="225.28" fill="#141414"/>
+<rect x="251.95" y="669.01" width="49.07" height="78.51" rx="19.63" fill="#F6F5F1"/>
+<rect x="330.45" y="629.76" width="49.07" height="117.76" rx="19.63" fill="#F6F5F1"/>
+<rect x="408.96" y="551.25" width="49.07" height="196.27" rx="19.63" fill="#F6F5F1"/>
+<rect x="487.47" y="276.48" width="49.07" height="471.04" rx="19.63" fill="#1C7ED6"/>
+<rect x="565.97" y="551.25" width="49.07" height="196.27" rx="19.63" fill="#F6F5F1"/>
+<rect x="644.48" y="629.76" width="49.07" height="117.76" rx="19.63" fill="#F6F5F1"/>
+<rect x="722.99" y="669.01" width="49.07" height="78.51" rx="19.63" fill="#F6F5F1"/>
 </svg>

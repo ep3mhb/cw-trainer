@@ -1,4 +1,4 @@
-# CW Trainer
+# RESONIK CW Trainer
 
 Browser-based Morse code (CW) training: the Koch course for
 receiving, sending practice with a real key or paddle, a simulated operator to

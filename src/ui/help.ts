@@ -209,6 +209,11 @@ export function helpView(ctx: Ctx): View {
         el('a', { href: './manual/CW-Trainer-User-Manual-AR.pdf', target: '_blank', rel: 'noopener', lang: 'ar', text: '\u0627\u0644\u0639\u0631\u0628\u064a\u0629' }),
         el('span', { class: 'hint', text: ' (Arabic). This page is the short version; the manual is the long one.' })),
       el('p', { class: 'hint' },
+        'RESONIK CW Trainer is part of RESONIK, the amateur radio brand that also covers the Caspian 4 ' +
+        'transceiver and the RESONIK firmware for the ATS Mini receiver. Until version 0.14.0 it was ' +
+        'called simply CW Trainer; nothing else changed with the name, and your practice, account and ' +
+        'records carry on as before.'),
+      el('p', { class: 'hint' },
         'Open source under the Apache License 2.0. Copyright 2026 Mohammad Bahrololoum. You may use, ' +
         'modify and share it, including commercially, as long as you keep the copyright notice and say ' +
         'what you changed.'),

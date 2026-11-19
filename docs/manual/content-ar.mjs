@@ -2,7 +2,7 @@
 import { HANDOVER_SIGNALS, PROSIGN_NOTES, Q_CODES } from '../../src/data/reference.ts';
 import { KOCH_ORDER, MORSE, PROSIGNS } from '../../src/core/morse.ts';
 
-export const VERSION = '0.11.0';
+export const VERSION = '0.14.0';
 const letters = Object.fromEntries(Object.entries(MORSE).filter(([c]) => /^[A-Z]$/.test(c)));
 const digits = Object.fromEntries(Object.entries(MORSE).filter(([c]) => /^[0-9]$/.test(c)));
 const punct = Object.fromEntries(Object.entries(MORSE).filter(([c]) => !/^[A-Z0-9]$/.test(c)));
@@ -87,13 +87,13 @@ const GLOSSARY_AR = [
 
 export default {
   lang: 'ar', dir: 'rtl', file: `CW-Trainer-User-Manual-AR-${VERSION}.pdf`,
-  docTitle: 'CW Trainer — دليل المستخدم: تعلّم شيفرة مورس (CW)',
+  docTitle: 'RESONIK CW Trainer — دليل المستخدم: تعلّم شيفرة مورس (CW)',
   ui: { contents: 'المحتويات', chapter: 'الفصل', figure: 'الشكل', page: 'صفحة', version: `الإصدار ${VERSION}` },
   cover: {
     title: 'CW Trainer', subtitle: 'دليل المستخدم',
     leds: ['دورة كوخ', 'تمرين الإرسال', 'QSO محاكى', 'على الهوائي الافتراضي مع بقية الأعضاء'],
     meta: [
-      `**الإصدار ${VERSION}** · أكتوبر 2026`,
+      `**الإصدار ${VERSION}** · نوفمبر 2026`,
       'تطبيق الويب على **cw.mikroutik.com**',
       '© 2026 محمد بحر العلوم، ex EP2MHB',
     ],
@@ -103,7 +103,7 @@ export default {
     {
       title: 'أهلًا بك',
       intro: [
-        'CW Trainer تطبيق وِب لتعلّم شيفرة مورس (CW) والتمرّن عليها. يعلّمك الاستقبال بالأذن بطريقة كوخ، ويقيس إرسالك على مفتاح حقيقي، ويتيح لك إجراء اتصال كامل مع مشغّل محاكى، ثم — متى سجّلت الدخول — يضعك على نطاق افتراضي مشترك تعمل فيه مع بقية الأعضاء، مباشرةً، بمفتاحك أنت.',
+        'RESONIK CW Trainer تطبيق وِب لتعلّم شيفرة مورس (CW) والتمرّن عليها. يعلّمك الاستقبال بالأذن بطريقة كوخ، ويقيس إرسالك على مفتاح حقيقي، ويتيح لك إجراء اتصال كامل مع مشغّل محاكى، ثم — متى سجّلت الدخول — يضعك على نطاق افتراضي مشترك تعمل فيه مع بقية الأعضاء، مباشرةً، بمفتاحك أنت.',
         'يصف هذا الدليل كل جزء من التطبيق كما هو في الإصدار ' + VERSION + '. ولست مضطرًّا إلى قراءته من أوله إلى آخره: الفصل 2 يجعلك تبدأ في خمس دقائق، والباقي موجود لحين تريد أن تعرف ما يفعله عنصر تحكّم أو لماذا يتصرّف على هذا النحو.',
       ],
       sections: [
@@ -135,7 +135,7 @@ export default {
             { t: 'steps', items: [
               '**iPhone أو iPad:** افتح الصفحة في Safari، المس زر المشاركة، ثم «Add to Home Screen».',
               '**Android:** يعرض Chrome دعوة للتثبيت، أو من قائمة المتصفّح ← «Install app».',
-              '**Chrome أو Edge على سطح المكتب:** تظهر أيقونة تثبيت في يمين شريط العنوان، أو ابحث في قائمة المتصفّح عن «Install CW Trainer».',
+              '**Chrome أو Edge على سطح المكتب:** تظهر أيقونة تثبيت في يمين شريط العنوان، أو ابحث في قائمة المتصفّح عن «Install RESONIK CW Trainer».',
             ] },
             { t: 'note', kind: 'warn', label: 'العمل دون اتصال', text: 'العمل دون اتصال يحتاج النسخة المقدَّمة من عنوان الوِب، لا ملفًّا تفتحه من قرصك. حمّل الصفحة مرة واحدة وأنت متصل، فتعمل بعدها بلا اتصال. فإن لم تفعل، فثمة ما يمسح بيانات تصفّحك عند إغلاق المتصفّح — إعدادات «المسح عند الخروج» وبعض إضافات الخصوصية تفعل هذا، وتأخذ معها سجلّ تمرينك.' },
           ],

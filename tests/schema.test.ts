@@ -24,7 +24,7 @@ describe('export envelope', () => {
   });
 
   it('rejects a file that is not an export', () => {
-    expect(() => parseEnvelope({ hello: 'world' })).toThrow(/not a cw trainer export/i);
+    expect(() => parseEnvelope({ hello: 'world' })).toThrow(/not a resonik cw trainer export/i);
     expect(() => parseEnvelope(null)).toThrow();
     expect(() => parseEnvelope('a string')).toThrow();
   });

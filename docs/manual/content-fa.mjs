@@ -2,7 +2,7 @@
 import { HANDOVER_SIGNALS, PROSIGN_NOTES, Q_CODES } from '../../src/data/reference.ts';
 import { KOCH_ORDER, MORSE, PROSIGNS } from '../../src/core/morse.ts';
 
-export const VERSION = '0.11.0';
+export const VERSION = '0.14.0';
 const letters = Object.fromEntries(Object.entries(MORSE).filter(([c]) => /^[A-Z]$/.test(c)));
 const digits = Object.fromEntries(Object.entries(MORSE).filter(([c]) => /^[0-9]$/.test(c)));
 const punct = Object.fromEntries(Object.entries(MORSE).filter(([c]) => !/^[A-Z0-9]$/.test(c)));
@@ -86,13 +86,13 @@ const GLOSSARY_FA = [
 
 export default {
   lang: 'fa', dir: 'rtl', file: `CW-Trainer-User-Manual-FA-${VERSION}.pdf`,
-  docTitle: 'CW Trainer — راهنمای کاربر: آموزش کد مورس (CW)',
+  docTitle: 'RESONIK CW Trainer — راهنمای کاربر: آموزش کد مورس (CW)',
   ui: { contents: 'فهرست', chapter: 'فصل', figure: 'شکل', page: 'صفحهٔ', version: `نسخهٔ ${VERSION}` },
   cover: {
     title: 'CW Trainer', subtitle: 'راهنمای کاربر',
     leds: ['دورهٔ کُخ', 'تمرین ارسال', 'QSO شبیه‌سازی‌شده', 'روی آنتن مجازی با دیگر اعضا'],
     meta: [
-      `**نسخهٔ ${VERSION}** · اکتبر ۲۰۲۶ (مهر ۱۴۰۵)`,
+      `**نسخهٔ ${VERSION}** · نوامبر ۲۰۲۶ (آبان ۱۴۰۵)`,
       'برنامهٔ وب در نشانی **cw.mikroutik.com**',
       '© ۲۰۲۶ محمد بحرالعلوم، ex EP2MHB',
     ],
@@ -102,7 +102,7 @@ export default {
     {
       title: 'خوش آمدید',
       intro: [
-        'CW Trainer یک برنامهٔ وب برای یادگیری و تمرین کد مورس (CW) است. با روش کُخ دریافت با گوش را به شما می‌آموزد، ارسال شما را روی کلید واقعی می‌سنجد، می‌گذارد یک تماس کامل با اپراتور شبیه‌سازی‌شده انجام دهید، و — پس از ورود به حساب — شما را روی یک باند مجازی مشترک می‌گذارد تا با دیگر اعضا، زنده و با کلید خودتان، تماس بگیرید.',
+        'RESONIK CW Trainer یک برنامهٔ وب برای یادگیری و تمرین کد مورس (CW) است. با روش کُخ دریافت با گوش را به شما می‌آموزد، ارسال شما را روی کلید واقعی می‌سنجد، می‌گذارد یک تماس کامل با اپراتور شبیه‌سازی‌شده انجام دهید، و — پس از ورود به حساب — شما را روی یک باند مجازی مشترک می‌گذارد تا با دیگر اعضا، زنده و با کلید خودتان، تماس بگیرید.',
         'این راهنما همهٔ بخش‌های برنامه را در نسخهٔ ' + VERSION + ' شرح می‌دهد. لازم نیست از اول تا آخر بخوانید: فصل ۲ در پنج دقیقه شما را راه می‌اندازد، و باقی برای وقتی است که بخواهید بدانید یک کنترل چه می‌کند یا چرا چنین رفتار می‌کند.',
       ],
       sections: [
@@ -134,7 +134,7 @@ export default {
             { t: 'steps', items: [
               '**آیفون یا آیپد:** صفحه را در Safari باز کنید، دکمهٔ Share و سپس «Add to Home Screen».',
               '**اندروید:** Chrome پیشنهاد نصب نشان می‌دهد، یا از منوی مرورگر ← «Install app».',
-              '**Chrome یا Edge دسکتاپ:** آیکون نصب در سمت راست نوار نشانی ظاهر می‌شود، یا در منوی مرورگر «Install CW Trainer» را بجویید.',
+              '**Chrome یا Edge دسکتاپ:** آیکون نصب در سمت راست نوار نشانی ظاهر می‌شود، یا در منوی مرورگر «Install RESONIK CW Trainer» را بجویید.',
             ] },
             { t: 'note', kind: 'warn', label: 'کار آفلاین', text: 'کار آفلاین به نسخه‌ای نیاز دارد که از نشانی وب بار شده باشد، نه فایلی که از دیسک باز کرده‌اید. یک بار در حال اتصال صفحه را بار کنید و پس از آن بی‌اتصال کار می‌کند. اگر نکرد، چیزی داده‌های مرورگر را در هنگام خروج پاک می‌کند — تنظیم «clear on exit» و برخی افزونه‌های حریم خصوصی چنین می‌کنند و تاریخچهٔ تمرین شما را هم با خود می‌برند.' },
           ],

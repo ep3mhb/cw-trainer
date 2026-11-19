@@ -188,9 +188,12 @@ function stamp(qr: string | null, serial: string): HTMLElement {
          number, and the lower legend goes with the square it belonged to. -->
     ${qr === null ? '' : '<circle cx="50" cy="50" r="33" fill="#fff"/>'}
     <circle cx="50" cy="50" r="33" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.5"/>
-    <text font-size="5.3" fill="currentColor" font-family="ui-sans-serif, system-ui, sans-serif">
+    <!-- 0.14.0: the legend carries the RESONIK name, nine characters longer
+         than before. The top arc is about 77 units long, so the text is set
+         smaller and held to 76 rather than run past the arc's ends. -->
+    <text font-size="4.4" fill="currentColor" font-family="ui-sans-serif, system-ui, sans-serif">
       <textPath href="#cert-arc-top" startOffset="50%" text-anchor="middle"
-        textLength="70" lengthAdjust="spacing">CW TRAINER \u00b7 KOCH COURSE</textPath>
+        textLength="76" lengthAdjust="spacingAndGlyphs">RESONIK CW TRAINER \u00b7 KOCH COURSE</textPath>
     </text>
     ${qr === null ? `<text x="50" y="52.5" font-size="6" text-anchor="middle" fill="currentColor"
         textLength="54" lengthAdjust="spacingAndGlyphs">${serial}</text>` : `<text font-size="5.3" fill="currentColor" font-family="ui-sans-serif, system-ui, sans-serif">

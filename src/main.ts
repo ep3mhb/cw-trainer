@@ -353,7 +353,11 @@ async function boot(): Promise<void> {
       el(
         'header',
         { class: 'top' },
-        el('h1', {},
+        // 0.14.2: the header plate is a paragraph, not a heading. The landing
+        // view's <h1> is the page's only first-level heading; with this one
+        // as well, Bing reported "more than one h1" (both are in the DOM at
+        // once, this one hidden behind the landing view).
+        el('p', { class: 'app-title' },
           // 0.14.0: the brand is the master logo, never retyped — the header's
           // small-caps face would render it as "rESONiK". Product name follows.
           el('img', { class: 'brand-logo', src: './brand/resonik-logo-reversed-tight.svg', alt: 'RESONIK', width: '950', height: '180' }),

@@ -12,6 +12,10 @@ import type { Settings } from '../storage/schema';
  * statement about what is held must not be able to go stale in a cache.
  */
 export const PRIVACY_URL = 'https://www.mikroutik.com/privacy.html';
+/** The trainer's two YouTube films and the channel they sit on (0.14.1). */
+export const VIDEO_TOUR_URL = 'https://youtu.be/rxYNXcxkyK0';
+export const VIDEO_SHORT_URL = 'https://youtube.com/shorts/msLFBTW8awQ';
+export const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/channel/UCoN1lx99kAzv9XInFAe05xQ';
 
 /** Everything a view needs. Passed explicitly rather than imported. */
 export interface Ctx {

@@ -17,7 +17,7 @@ import {
   ABBREVIATIONS, GLOSSARY, HANDOVER_SIGNALS, KEY_TYPES, PROSIGN_MISTAKES, PROSIGN_NOTES, Q_CODES,
 } from '../data/reference';
 import { el } from './dom';
-import { PRIVACY_URL } from './context';
+import { PRIVACY_URL, VIDEO_SHORT_URL, VIDEO_TOUR_URL, YOUTUBE_CHANNEL_URL } from './context';
 import type { Ctx, View } from './context';
 
 declare const __APP_VERSION__: string;
@@ -208,6 +208,14 @@ export function helpView(ctx: Ctx): View {
         el('span', { class: 'hint', text: ' (Persian) \u00b7 ' }),
         el('a', { href: './manual/CW-Trainer-User-Manual-AR.pdf', target: '_blank', rel: 'noopener', lang: 'ar', text: '\u0627\u0644\u0639\u0631\u0628\u064a\u0629' }),
         el('span', { class: 'hint', text: ' (Arabic). This page is the short version; the manual is the long one.' })),
+      el('p', { class: 'manual-links' },
+        el('b', { text: 'Two videos show it at work: ' }),
+        el('a', { href: VIDEO_TOUR_URL, target: '_blank', rel: 'noopener', text: 'the video tour' }),
+        el('span', { class: 'hint', text: ' (two minutes) \u00b7 ' }),
+        el('a', { href: VIDEO_SHORT_URL, target: '_blank', rel: 'noopener', text: 'the short one' }),
+        el('span', { class: 'hint', text: ' (20 seconds), both on YouTube, where ' }),
+        el('a', { href: YOUTUBE_CHANNEL_URL, target: '_blank', rel: 'noopener', text: 'the RESONIK channel' }),
+        el('span', { class: 'hint', text: ' has the others.' })),
       el('p', { class: 'hint' },
         'RESONIK CW Trainer is part of RESONIK, the amateur radio brand that also covers the Caspian 4 ' +
         'transceiver and the RESONIK firmware for the ATS Mini receiver. Until version 0.14.0 it was ' +

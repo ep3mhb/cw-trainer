@@ -23,7 +23,7 @@ import { KOCH_ORDER, MORSE } from '../core/morse';
 import { DEFAULT_COURSE } from '../core/koch';
 import { spectrumRow, waterfallColour } from '../core/spectrum';
 import { clear, el } from './dom';
-import { PRIVACY_URL, type View } from './context';
+import { PRIVACY_URL, VIDEO_SHORT_URL, VIDEO_TOUR_URL, YOUTUBE_CHANNEL_URL, type View } from './context';
 
 /** What the landing view can send the visitor off to do. */
 export interface LandingActions {
@@ -209,6 +209,22 @@ export function landingView(actions: LandingActions): View {
     manual('./manual/CW-Trainer-User-Manual-AR.pdf', 'العربية', 51, 'ar'),
   );
 
+  // ---- the videos (0.14.1) ----
+  /*
+   * The two YouTube films of the trainer, and the channel they sit on. The
+   * same three links are in the static shell in index.html and on the help
+   * page; change them together. Durations are the films' own: 2:06 and 20 s.
+   */
+  const video = (href: string, name: string, meta: string): HTMLElement =>
+    el('a', { class: 'landing-manual', href, target: '_blank', rel: 'noopener' },
+      el('span', { class: 'name', text: name }),
+      el('span', { class: 'meta', text: meta }));
+  const videos = el('div', { class: 'landing-manuals' },
+    video(VIDEO_TOUR_URL, 'Video tour', '2 min · YouTube'),
+    video(VIDEO_SHORT_URL, 'The short one', '20 s · YouTube'),
+    video(YOUTUBE_CHANNEL_URL, 'All videos', 'RESONIK channel'),
+  );
+
   // ---- how to learn, in plain words (0.13.4) ----
   /*
    * The same text as the static shell in index.html, which a reader without
@@ -237,6 +253,8 @@ export function landingView(actions: LandingActions): View {
     brand, hero, course, actionRow, doors,
     el('p', { class: 'landing-cap', text: 'The beginner’s guide, with a screenshot of every tab' }),
     manuals,
+    el('p', { class: 'landing-cap', text: 'See it at work first: the videos' }),
+    videos,
     learn,
     el('div', { class: 'landing-colophon' },
       el('p', {}, 'RESONIK CW Trainer · Made by Mohammad Bahrololoum (ex EP2MHB) · ',

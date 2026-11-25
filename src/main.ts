@@ -16,6 +16,7 @@ import { readSession } from './net/session';
 import { certificateLookup } from './ui/certificate';
 import { badge, clear, el } from './ui/dom';
 import { adminView } from './ui/admin';
+import { confirmFromLink, confirmTokenInHash } from './ui/email-confirm';
 import { bandView } from './ui/band';
 import { helpView } from './ui/help';
 import { progressView } from './ui/progress';
@@ -441,10 +442,28 @@ async function boot(): Promise<void> {
   // dismissed once (A38).
   (window as unknown as { __cwLanding: () => void }).__cwLanding = showLanding;
 
+  /**
+   * RFD A55: after a confirmation link, build the On air tab again so it
+   * asks the server afresh. show() of the tab already open only refreshes,
+   * and On air has no refresh: it would keep the reminder and the refusal.
+   */
+  function rebuildAir(): void {
+    if (currentId !== 'air') return;
+    currentId = null;
+    show('air');
+  }
+
   const scanned = certificateSerial();
   const fromHash = window.location.hash.replace('#', '') as TabId;
+  // RFD A55: the link mailed at registration. Read before show() replaces the hash.
+  const confirmToken = confirmTokenInHash();
   if (scanned !== null) showCertificate(scanned);
   else if (window.location.hash.startsWith('#reset=')) show('air');
+  else if (confirmToken !== null) {
+    show('air');
+    // Rebuilt afterwards so the signed-in panel stops asking for a confirmation just given.
+    void confirmFromLink(ctx, confirmToken).then(rebuildAir);
+  }
   else if (shouldShowLanding(
     { sessions: (await store.sessions()).length, attempts: (await store.attempts()).length },
     readSession() !== null,
@@ -472,6 +491,13 @@ async function boot(): Promise<void> {
       ({ member }) => {
         ctx.setMember(member);
         if (currentId === 'progress') void current?.refresh?.();
+        // RFD A55: the administrator's notices link to #admin. That tab is
+        // off the bar until the server has said who is signed in, so the
+        // first show() fell back to Receive; go where the link pointed.
+        if (fromHash === 'admin' && member.role === 'admin' && currentId !== 'admin') {
+          dismissLanding();
+          show('admin');
+        }
       },
       () => undefined,
     );
@@ -481,6 +507,14 @@ async function boot(): Promise<void> {
     const serial = certificateSerial();
     if (serial !== null) {
       showCertificate(serial);
+      return;
+    }
+    // RFD A55: the confirmation link opened in a tab where the application is already running.
+    const confirm = confirmTokenInHash();
+    if (confirm !== null) {
+      dismissLanding();
+      show('air');
+      void confirmFromLink(ctx, confirm).then(rebuildAir);
       return;
     }
     const id = window.location.hash.replace('#', '') as TabId;

@@ -16,6 +16,18 @@ export interface Config {
   icePolicy: 'all' | 'relay';
   /** The one account created as admin on registration (RFP §8). */
   adminCallsign: string;
+  /**
+   * RFD A55: where the notices of new registrations go. When unset, the
+   * address on the administrator's own account (ADMIN_CALLSIGN) is used,
+   * so changing that address in the application is enough.
+   */
+  adminEmail?: string;
+  /**
+   * RFD A55: a claimed callsign is confirmed automatically when its owner
+   * confirms their email address. On unless AUTO_APPROVE=0, which puts the
+   * administrator's "Confirm callsign" back in the path.
+   */
+  autoApprove?: boolean;
   /** Public origin of the application, for links in mail. */
   appOrigin: string;
   /**
@@ -54,6 +66,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     turnUri: required(env, 'TURN_URI'),
     icePolicy: env['ICE_POLICY'] === 'all' ? 'all' : 'relay',
     adminCallsign: (env['ADMIN_CALLSIGN'] ?? 'EP2MHB').toUpperCase(),
+    ...(env['ADMIN_EMAIL'] ? { adminEmail: env['ADMIN_EMAIL'].trim().toLowerCase() } : {}),
+    autoApprove: env['AUTO_APPROVE'] !== '0',
     appOrigin: env['APP_ORIGIN'] ?? 'https://cw.mikroutik.com',
     publicOrigin: env['PUBLIC_ORIGIN'] ?? 'https://sig.mikroutik.com',
     smtp: smtpHost
@@ -62,7 +76,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
           port: Number(env['SMTP_PORT'] ?? 587),
           user: env['SMTP_USER'] ?? '',
           pass: env['SMTP_PASS'] ?? '',
-          from: env['SMTP_FROM'] ?? `CW Trainer <noreply@${smtpHost.replace(/^mail\./, '')}>`,
+          // Every mail the server sends comes from noreply@mikroutik.com (RFD A55).
+          from: env['SMTP_FROM'] ?? 'RESONIK CW Trainer <noreply@mikroutik.com>',
         }
       : null,
     turnTtlS: Number(env['TURN_TTL_S'] ?? 6 * 3600),

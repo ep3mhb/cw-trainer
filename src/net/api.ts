@@ -27,6 +27,12 @@ export interface MemberInfo {
    * that could disagree with it.
    */
   keepRecords: boolean;
+  /**
+   * RFD A55: has the member opened the confirmation link mailed to their
+   * address? Absent from servers older than 0.11.0, which is not the same
+   * as false.
+   */
+  emailConfirmed?: boolean;
 }
 
 /** RFP §8's profile fields; blank means not shown. */
@@ -44,6 +50,12 @@ export interface MemberProfile {
 export interface AdminMember extends MemberInfo {
   disabled: boolean;
   mutedUntil: string | null;
+  /** RFD A56: when the newest unused confirmation link was sent; absent from older servers. */
+  confirmationSentAt?: string | null;
+  confirmationExpired?: boolean;
+  /** A58: absent from servers older than 0.11.2. */
+  createdAt?: string | null;
+  lastSeenAt?: string | null;
 }
 
 export interface ReportRecord {
@@ -58,7 +70,7 @@ export interface ReportRecord {
   resolved: boolean;
 }
 
-export type AdminAction = 'verify' | 'unverify' | 'disable' | 'enable' | 'delete' | 'reset' | 'unmute';
+export type AdminAction = 'verify' | 'unverify' | 'disable' | 'enable' | 'delete' | 'reset' | 'unmute' | 'confirm-link';
 
 export interface ContactRecord {
   id: number;
@@ -227,8 +239,8 @@ export interface CertificateSheet extends CertificateInfo {
 
 export const api = {
   register: (input: {
-    name: string; email: string; password: string; callsign?: string; keepRecords?: boolean;
-  }) => call<{ token: string; member: MemberInfo }>('POST', '/api/register', input),
+    name: string; email: string; password: string; callsign?: string; keepRecords?: boolean; website?: string;
+  }) => call<{ token: string; member: MemberInfo; confirmationSent?: boolean }>('POST', '/api/register', input),
   login: (email: string, password: string) =>
     call<{ token: string; member: MemberInfo }>('POST', '/api/login', { email, password }),
   logout: () => call<Record<string, never>>('POST', '/api/logout'),
@@ -276,12 +288,15 @@ export const api = {
       sessions, weights, unlocked, open,
     }),
   trainingReport: () => call<TrainingReportBody>('GET', '/api/me/training'),
-  adminMembers: () => call<{ members: AdminMember[] }>('GET', '/api/admin/members'),
+  adminMembers: () => call<{ members: AdminMember[]; autoApprove?: boolean }>('GET', '/api/admin/members'),
   adminReports: () => call<{ reports: ReportRecord[] }>('GET', '/api/admin/reports'),
   adminAct: (memberId: number, action: AdminAction, reason: string) =>
     call<{ member: AdminMember | null }>('POST', `/api/admin/members/${String(memberId)}/${action}`, { reason }),
   adminResolve: (reportId: number) =>
     call<Record<string, never>>('POST', `/api/admin/reports/${String(reportId)}/resolve`),
+  /** RFD A55: the link from the mail. No session needed; the token is the proof. */
+  confirmEmail: (token: string) => call<{ member: MemberInfo }>('POST', '/api/email/confirm', { token }),
+  resendConfirmation: () => call<{ message: string }>('POST', '/api/me/email/resend', {}),
   resetRequest: (email: string) => call<{ message: string }>('POST', '/api/reset/request', { email }),
   resetConfirm: (token: string, password: string) =>
     call<{ token: string; member: MemberInfo }>('POST', '/api/reset/confirm', { token, password }),

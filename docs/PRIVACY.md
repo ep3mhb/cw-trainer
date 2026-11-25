@@ -24,7 +24,8 @@ these, read the notice before you ship:
 | Change | What the notice says |
 | --- | --- |
 | `ICE_POLICY` moved off `relay` | contacts are relayed, so no member learns another's IP address. `all` makes that false — `SERVER-SETUP.md` §11 says to say so here |
-| A new column on `members`, or a new table | "what the server holds, if you create an account" is a list, and it is meant to be complete |
+| A new column on `members`, or a new table | "what the server holds, if you create an account" is a list, and it is meant to be complete. A55 (25 Nov 2026) added `email_confirmed` and `email_confirmations` to it |
+| A new kind of mail | "Mail is sent only when you cause it" lists every mail, including the administrator's notice of a registration (A55) |
 | Anything new written to the journal | the connection-quality lines are described; a new log line about members needs a sentence |
 | Retention changed in `journald.conf`, `logrotate`, or a cleanup job | the table gives 14 days for logs, 12 months for reports |
 | Backups: the cron in `SERVER-SETUP.md` §10, its 14-day prune, or where the copies go | the notice names the nightly dump, says a copy sits on the shared hosting **encrypted**, and gives 14 days for both. It also says account details and the certificate survive deletion **for up to fourteen days in the backups** — that sentence exists because `deleteMember` cannot reach a dump taken yesterday. Lengthen the prune and you lengthen that promise; add a destination and it joins "the complete list" |

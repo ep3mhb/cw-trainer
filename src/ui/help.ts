@@ -776,7 +776,24 @@ export function helpView(ctx: Ctx): View {
         + 'in your inbox. The link works once and for one hour, so if an older one has expired, ask for a fresh '
         + 'one from "Forgotten password" rather than following the old mail.'),
       el('p', {},
-        'A callsign you claim is confirmed by an administrator before it counts as yours. Until then you '
+        'When you register, the server mails you a link to confirm that the email address is yours. It comes '
+        + 'from RESONIK CW Trainer <noreply@mikroutik.com>, and some providers file a first message from it as spam, '
+        + 'so look there if it has not arrived. Open it '
+        + 'within 48 hours; you do not need to be signed in. Confirming it also confirms the callsign you gave, '
+        + 'and opens the band to you: an account whose address is not confirmed can practise everything else but '
+        + 'cannot go on the air, which keeps the band free of throwaway accounts: the On air tab shows "Not on the air '
+        + 'yet" in place of the band, with "I have confirmed \u2014 check again" for after you have opened the link. '
+        + 'Until you have confirmed, "Your account" on the Settings tab and the On air tab show a reminder with a "Send the link again" '
+        + 'button, which sends a fresh link and retires the old one (once a minute, five times a day). The '
+        + 'administrator is told by mail when you register and when you confirm.'),
+      el('p', { class: 'hint' },
+        'To keep the server from being used to send mail or guess passwords, it limits how often each thing can '
+        + 'be done: three registrations an hour from one connection, three password-reset mails an hour to one '
+        + 'address, and fifteen minutes\u2019 pause after ten wrong passwords for one account. A real member is '
+        + 'unlikely ever to meet these; if you do, the message says how long to wait.'),
+      el('p', {},
+        'A callsign you claim is confirmed before it counts as yours \u2014 by your confirming your address, '
+        + 'and an administrator can withdraw the confirmation if the callsign turns out not to be yours. Until then you '
         + 'can practise and go on the band, but your callsign is marked "unconfirmed" wherever it appears and '
         + 'no contact with you is exportable \u2014 so nobody can appear in another member\u2019s log as an '
         + 'operator they are not. A training identifier needs no confirmation; the application issued it.'),
@@ -833,12 +850,25 @@ export function helpView(ctx: Ctx): View {
         + 'sees it. Hiding it only keeps the interface tidy \u2014 the server refuses every '
         + 'administrator\u2019s request from an account that is not one, whether or not the tab is on screen.'),
       el('p', {},
-        'The tab carries what used to sit at the foot of the On air tab: '
+        'Members are listed as a table: callsign, name and email, one status in plain words, when they joined '
+        + 'and when they were last on the band. Filters above it show who needs you, who is waiting for their '
+        + 'email, who is active and who is disabled. The button on a row is the one thing to do now (Send link, '
+        + 'Send again, Enable); everything else is under More. '
+        + 'The tab carries what used to sit at the foot of the On air tab: '
         + 'the four actions an administrator has and nothing more \u2014 confirm a callsign (or withdraw the '
         + 'confirmation), force a password reset, disable an account (and enable it again), and delete one; '
         + 'a member muted from the band also gets an "Unmute" button there, so a 24-hour mute can be lifted early. '
         + 'Members whose callsigns are waiting on you are listed first and marked. Delete is drawn in red, as the '
         + 'one action on the page that cannot be undone from it.'),
+      el('p', {},
+        'You do not have to keep the tab open to notice newcomers. The server mails the administrator when '
+        + 'someone registers and again when they have confirmed their email address, with a link straight to '
+        + 'this tab. Confirming the address confirms the callsign automatically, so there is normally nothing to '
+        + 'do; if a callsign is not its owner\u2019s, "Withdraw confirmation" undoes it. A member who has not yet '
+        + 'confirmed their address carries an "email not confirmed" badge here and cannot go on the band; '
+        + '"Send confirmation link" mails them a fresh link, explaining why it is asked. The '
+        + 'notices go to the address on the administrator\u2019s own account unless the server sets ADMIN_EMAIL, '
+        + 'and AUTO_APPROVE=0 on the server puts the administrator\u2019s "Confirm callsign" back in the path.'),
       el('p', {},
         'The count at the top of the list counts members, not rows: a deleted account is not a member, so '
         + 'three rows of which two are deleted read "1 member \u00B7 2 deleted". The deleted ones are folded '

@@ -103,6 +103,7 @@ describe('password reset', () => {
   it('mails a link, accepts it once, and signs every other session out', async () => {
     const w = world();
     const { token: oldToken } = await w.member('Anna', 'a@example.com', 'G4ABC');
+    w.mailer.sent.length = 0; // registration's own mails (A55)
 
     const ask = await w.api.handle(post('/api/reset/request', { email: 'a@example.com' }));
     expect(ask.status).toBe(200);
@@ -125,6 +126,7 @@ describe('password reset', () => {
   it('answers identically for an unknown address, and sends nothing', async () => {
     const w = world();
     await w.member('Anna', 'a@example.com', 'G4ABC');
+    w.mailer.sent.length = 0; // registration's own mails (A55)
     const known = await w.api.handle(post('/api/reset/request', { email: 'a@example.com' }));
     const unknown = await w.api.handle(post('/api/reset/request', { email: 'nobody@example.com' }));
     expect(unknown).toEqual(known);
@@ -134,6 +136,7 @@ describe('password reset', () => {
   it('retires an earlier link when a newer one is requested', async () => {
     const w = world();
     await w.member('Anna', 'a@example.com', 'G4ABC');
+    w.mailer.sent.length = 0; // registration's own mails (A55)
     await w.api.handle(post('/api/reset/request', { email: 'a@example.com' }));
     await w.api.handle(post('/api/reset/request', { email: 'a@example.com' }));
     const first = /#reset=([A-Za-z0-9_-]+)/.exec(w.mailer.sent[0]!.text)![1]!;
@@ -145,6 +148,7 @@ describe('password reset', () => {
   it('tells the member in words when the mail cannot be sent, and logs the cause', async () => {
     const w = world();
     await w.member('Anna', 'a@example.com', 'G4ABC');
+    w.mailer.sent.length = 0; // registration's own mails (A55)
     w.mailer.send = async () => { throw new Error('ECONNREFUSED 1.2.3.4:587'); };
     const res = await w.api.handle(post('/api/reset/request', { email: 'a@example.com' }));
     expect(res.status).toBe(503);
@@ -155,6 +159,7 @@ describe('password reset', () => {
   it('lets a link expire', async () => {
     const w = world();
     await w.member('Anna', 'a@example.com', 'G4ABC');
+    w.mailer.sent.length = 0; // registration's own mails (A55)
     await w.api.handle(post('/api/reset/request', { email: 'a@example.com' }));
     const resetToken = /#reset=([A-Za-z0-9_-]+)/.exec(w.mailer.sent[0]!.text)![1]!;
     w.clock.now += 61 * 60 * 1000;

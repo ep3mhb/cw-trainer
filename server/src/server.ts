@@ -57,6 +57,22 @@ async function readJson(req: IncomingMessage): Promise<unknown> {
   });
 }
 
+
+/**
+ * RFD A55: the client's address, for rate limits only. Behind Cloudflare the
+ * real one is in CF-Connecting-IP; behind Caddy alone, the first entry of
+ * X-Forwarded-For. Either can be forged by a client that reaches this
+ * server another way, which is why every per-address limit has a global
+ * ceiling beside it.
+ */
+function clientIp(req: import('node:http').IncomingMessage): string {
+  const cf = req.headers['cf-connecting-ip'];
+  if (typeof cf === 'string' && cf.trim() !== '') return cf.trim();
+  const xff = req.headers['x-forwarded-for'];
+  const first = (Array.isArray(xff) ? xff[0] : xff)?.split(',')[0]?.trim();
+  return first || req.socket.remoteAddress || '';
+}
+
 function bearer(req: IncomingMessage): string | null {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) return null;
@@ -163,7 +179,9 @@ async function main(): Promise<void> {
           return;
         }
       }
-      const out = await api.handle({ method: req.method ?? 'GET', path: url.pathname, token: bearer(req), body });
+      const out = await api.handle({
+        method: req.method ?? 'GET', path: url.pathname, token: bearer(req), body, ip: clientIp(req),
+      });
       reply(res, out.status, out.body, origin);
     })().catch((error: unknown) => {
       log(`api error: ${String(error)}`);

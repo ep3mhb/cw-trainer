@@ -44,7 +44,8 @@ All from the environment (`/etc/cw-signalling.env` in production):
 | `ADMIN_CALLSIGN` | | the callsign that registers as administrator (default `EP2MHB`) |
 | `APP_ORIGIN` | | the application's origin, the only one allowed to call the API (default `https://cw.mikroutik.com`) |
 | `PORT`, `HOST` | | default `8080`, `127.0.0.1` — never bind publicly; Caddy fronts it |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | | reset mail; without `SMTP_HOST` the mail is logged, not sent |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | | reset, address-confirmation and administrator mail; without `SMTP_HOST` the mail is logged, not sent. `SMTP_FROM` defaults to `RESONIK CW Trainer <noreply@mikroutik.com>` |
+| `ADMIN_EMAIL` | the address on the `ADMIN_CALLSIGN` account | where notices of new registrations and confirmed addresses go (RFD A55) |
 | `TURN_TTL_S`, `SESSION_TTL_S` | | credential and session lifetimes (6 h, 30 days) |
 
 ## Deploy

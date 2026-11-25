@@ -60,6 +60,10 @@ function adminPanel(ctx: Ctx, me: MemberInfo): { node: HTMLElement; reload: () =
 
   let members: AdminMember[] = [];
   let reports: ReportRecord[] = [];
+  /** A58: which members the table shows, and whether the server approves callsigns itself. */
+  let filter: 'all' | 'attention' | 'waiting' | 'active' | 'disabled' = 'all';
+  let autoApprove = true;
+  const filters = el('div', { class: 'row admin-filters' });
 
   const when = (iso: string): string => new Date(iso).toLocaleString(undefined, {
     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
@@ -71,65 +75,127 @@ function adminPanel(ctx: Ctx, me: MemberInfo): { node: HTMLElement; reload: () =
     if (twice && !window.confirm(`${ask} ${m.callsign}: this cannot be undone from here. Go ahead?`)) return;
     try {
       await api.adminAct(m.id, action, reason.trim());
-      ctx.toast(`${m.callsign}: ${action} done.`, 'good');
+      ctx.toast(action === 'confirm-link' ? `Confirmation link sent to ${m.email}.` : `${m.callsign}: ${action} done.`, 'good');
     } catch (error) {
       ctx.toast(error instanceof Error ? error.message : 'that did not work', 'bad');
     }
     await load();
   }
 
-  function memberRow(m: AdminMember, awaiting: boolean): HTMLElement {
+  /**
+   * RFD A58: one status per member, in plain words, instead of a row of
+   * badges. `group` decides the filter it falls under; `tone` its colour.
+   */
+  type Group = 'waiting' | 'attention' | 'active' | 'disabled';
+  function statusOf(m: AdminMember): { text: string; tone: 'good' | 'warn' | 'bad' | ''; group: Group } {
+    if (m.disabled) return { text: 'Disabled', tone: 'bad', group: 'disabled' };
+    if (m.emailConfirmed === false) {
+      if (m.confirmationSentAt && m.confirmationExpired) {
+        return { text: `Link expired (sent ${short(m.confirmationSentAt)})`, tone: 'bad', group: 'attention' };
+      }
+      if (m.confirmationSentAt) return { text: `Waiting for email · link sent ${short(m.confirmationSentAt)}`, tone: 'warn', group: 'waiting' };
+      return { text: 'Waiting for email · no link sent yet', tone: 'warn', group: 'attention' };
+    }
+    if (!m.training && !m.verified) {
+      return autoApprove
+        ? { text: 'Callsign withdrawn', tone: 'bad', group: 'attention' }
+        : { text: 'Callsign to approve', tone: 'warn', group: 'attention' };
+    }
+    return { text: m.muted ? 'Active · muted' : 'Active', tone: m.muted ? 'warn' : 'good', group: 'active' };
+  }
+
+  const short = (iso: string): string => new Date(iso).toLocaleString('en-GB', {
+    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+  });
+  const day = (iso: string | null | undefined): string => (iso
+    ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
+
+  function memberRow(m: AdminMember): HTMLElement {
     const id = describeIdentifier(m.callsign);
     const deleted = isDeleted(m);
-    const unconfirmed = !m.training && !m.verified && !deleted;
-    const actions = el('div', { class: 'row' });
-    const button = (text: string, cls: string, onClick: () => void): void => {
-      const b = el('button', { class: cls, text });
-      b.addEventListener('click', onClick);
-      actions.append(b);
+    const status = deleted ? { text: 'Deleted', tone: '' as const, group: 'disabled' as Group } : statusOf(m);
+    const main = el('div', { class: 'admin-act' });
+    const more = el('details', { class: 'admin-more' });
+    const menu = el('div', { class: 'admin-menu' });
+    const primary = (text: string, cls: string, onClick: () => void): void => {
+      const btn = el('button', { class: cls, text });
+      btn.addEventListener('click', onClick);
+      main.append(btn);
+    };
+    const item = (text: string, cls: string, onClick: () => void): void => {
+      const btn = el('button', { class: cls, text });
+      btn.addEventListener('click', () => { more.open = false; onClick(); });
+      menu.append(btn);
     };
     if (m.id !== me.id && !deleted) {
-      if (!m.training) {
-        if (m.verified) button('Withdraw confirmation', 'btn', () => void act(m, 'unverify', 'Withdraw confirmation of'));
-        else button('Confirm callsign', 'btn primary', () => void act(m, 'verify', 'Confirm the callsign of'));
-      }
-      if (m.muted) button('Unmute', 'btn', () => void act(m, 'unmute', 'Lift the mute on'));
-      button('Force reset', 'btn', () => void act(m, 'reset', 'Sign out and mail a reset link to', true));
-      if (m.disabled) button('Enable', 'btn', () => void act(m, 'enable', 'Enable'));
-      else button('Disable', 'btn danger', () => void act(m, 'disable', 'Disable'));
-      // Destructive, and drawn as such: the account is emptied and the
-      // callsign released. The reason is still required.
-      button('Delete', 'btn danger destructive', () => void act(m, 'delete', 'Delete', true));
+      // The one thing to do now, if there is one.
+      if (m.disabled) primary('Enable', 'btn', () => void act(m, 'enable', 'Enable'));
+      else if (m.emailConfirmed === false) {
+        const live = m.confirmationSentAt != null && !m.confirmationExpired;
+        primary(live ? 'Send again' : 'Send link', live ? 'btn' : 'btn primary',
+          () => void act(m, 'confirm-link', 'Mail a confirmation link to'));
+      } else if (!m.training && !m.verified) {
+        primary(autoApprove ? 'Confirm callsign again' : 'Approve callsign', 'btn primary',
+          () => void act(m, 'verify', 'Confirm the callsign of'));
+      } else if (m.muted) primary('Unmute', 'btn', () => void act(m, 'unmute', 'Lift the mute on'));
+      // Everything else, out of the way.
+      if (!m.training && m.verified) item('Withdraw callsign confirmation', 'btn', () => void act(m, 'unverify', 'Withdraw confirmation of'));
+      item('Force password reset', 'btn', () => void act(m, 'reset', 'Sign out and mail a reset link to', true));
+      if (!m.disabled) item('Disable account', 'btn danger', () => void act(m, 'disable', 'Disable'));
+      item('Delete account', 'btn danger destructive', () => void act(m, 'delete', 'Delete', true));
+      more.append(el('summary', { class: 'btn', text: 'More ▾' }), menu);
     }
-    return el('div', { class: `admin-row${awaiting ? ' attention' : ''}` },
-      el('div', { class: 'station-main' },
-        el('b', { class: 'mono', text: id.text }),
-        m.training ? el('span', { class: 'badge warn', text: 'training' }) : null,
-        unconfirmed ? el('span', { class: 'badge bad', text: 'unconfirmed' }) : null,
-        m.role !== 'member' && m.role !== 'student' ? el('span', { class: 'badge', text: m.role }) : null,
-        deleted ? el('span', { class: 'badge bad', text: 'deleted' }) : m.disabled ? el('span', { class: 'badge bad', text: 'disabled' }) : null,
-        m.muted ? el('span', { class: 'badge warn', text: 'muted' }) : null,
-        el('span', { class: 'hint', text: deleted ? '' : `${m.name} · ${m.email}` })),
-      actions);
+    const tags = el('span', { class: 'admin-tags' },
+      m.training ? el('span', { class: 'badge warn', text: 'training' }) : null,
+      m.role === 'admin' ? el('span', { class: 'badge', text: 'admin' }) : null);
+    return el('div', { class: `admin-tr${status.group === 'attention' ? ' attention' : ''}` },
+      el('div', { class: 'admin-td admin-call' }, el('b', { class: 'mono', text: id.text }), tags),
+      el('div', { class: 'admin-td admin-who' },
+        el('span', { text: deleted ? '' : m.name }),
+        el('span', { class: 'hint', text: deleted ? '' : m.email })),
+      el('div', { class: 'admin-td' }, el('span', { class: `admin-status ${status.tone}`, text: status.text })),
+      el('div', { class: 'admin-td hint' }, day(m.createdAt)),
+      el('div', { class: 'admin-td hint' }, day(m.lastSeenAt)),
+      el('div', { class: 'admin-td admin-actions' }, main, m.id !== me.id && !deleted ? more : null));
   }
+
+  const head = (): HTMLElement => el('div', { class: 'admin-tr admin-th' },
+    ...['Callsign', 'Name and email', 'Status', 'Joined', 'Last on the band', ''].map((t) => el('div', { class: 'admin-td', text: t })));
 
   function renderMembers(): void {
     clear(memberList);
     clear(deletedList);
+    clear(filters);
     const gone = members.filter(isDeleted);
-    const active = members.filter((m) => !isDeleted(m));
-    const awaiting = active.filter((m) => !m.training && !m.verified && !m.disabled);
-    note.textContent = `${String(active.length)} member${active.length === 1 ? '' : 's'}`
-      + (gone.length > 0 ? ` · ${String(gone.length)} deleted` : '')
-      + (awaiting.length > 0 ? ` — ${String(awaiting.length)} callsign${awaiting.length === 1 ? '' : 's'} awaiting confirmation` : '')
-      + '.';
-    // Those waiting on you first, then the rest by callsign.
-    const ordered = [...awaiting, ...active.filter((m) => !awaiting.includes(m))];
-    for (const m of ordered) memberList.append(memberRow(m, awaiting.includes(m)));
+    const current = members.filter((m) => !isDeleted(m));
+    const count = (g: Group): number => current.filter((m) => statusOf(m).group === g).length;
+    const parts: [typeof filter, string, number][] = [
+      ['all', 'All', current.length],
+      ['attention', 'Needs you', count('attention')],
+      ['waiting', 'Waiting for email', count('waiting')],
+      ['active', 'Active', count('active')],
+      ['disabled', 'Disabled', count('disabled')],
+    ];
+    for (const [key, label, n] of parts) {
+      if (key !== 'all' && n === 0 && filter !== key) continue;
+      const chip = el('button', { class: `btn admin-chip${filter === key ? ' on' : ''}`, text: `${label} ${String(n)}` });
+      chip.addEventListener('click', () => { filter = key; renderMembers(); });
+      filters.append(chip);
+    }
+    note.textContent = `${String(current.length)} member${current.length === 1 ? '' : 's'}`
+      + (gone.length > 0 ? ` · ${String(gone.length)} deleted` : '') + '.'
+      + (autoApprove ? ' Callsigns are confirmed automatically when the member confirms their email.' : '');
+    const order: Group[] = ['attention', 'waiting', 'active', 'disabled'];
+    const shown = current
+      .filter((m) => filter === 'all' || statusOf(m).group === filter)
+      .sort((x, y) => order.indexOf(statusOf(x).group) - order.indexOf(statusOf(y).group) || x.callsign.localeCompare(y.callsign));
+    memberList.append(head());
+    for (const m of shown) memberList.append(memberRow(m));
+    if (shown.length === 0) memberList.append(el('p', { class: 'hint', text: 'Nobody here.' }));
 
     deletedBox.hidden = gone.length === 0;
     deletedSummary.textContent = `${String(gone.length)} deleted account${gone.length === 1 ? '' : 's'}`;
-    for (const m of gone) deletedList.append(memberRow(m, false));
+    for (const m of gone) deletedList.append(memberRow(m));
   }
 
   function renderReports(): void {
@@ -169,7 +235,7 @@ function adminPanel(ctx: Ctx, me: MemberInfo): { node: HTMLElement; reload: () =
   async function load(): Promise<void> {
     try {
       [members, reports] = await Promise.all([
-        api.adminMembers().then((r) => r.members),
+        api.adminMembers().then((r) => { autoApprove = r.autoApprove !== false; return r.members; }),
         api.adminReports().then((r) => r.reports),
       ]);
     } catch (error) {
@@ -183,9 +249,10 @@ function adminPanel(ctx: Ctx, me: MemberInfo): { node: HTMLElement; reload: () =
 
   panel.append(
     el('p', { class: 'hint' },
-      'The four actions an administrator has. A claimed callsign is marked unconfirmed until you confirm it, and '
-      + 'no contact with an unconfirmed callsign exports. Every action is logged with your reason.'),
+      'Each member has one status. The button beside it is the one thing to do now, if there is one; '
+      + 'the rest is under More. Every action is logged with your reason.'),
     el('div', { class: 'row' }, note, reload),
+    filters,
     memberList,
     deletedBox,
     el('h3', { text: 'Reports from members' }),

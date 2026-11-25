@@ -39,6 +39,16 @@ export interface Member {
    * and it should be visible in the schema to anyone reading it.
    */
   keepRecords: boolean;
+  /**
+   * RFD A55: has the member opened the link mailed to their address? A
+   * different question from `verified`, which is the administrator's
+   * confirmation of a claimed callsign. Nothing is withheld until it is
+   * true; the application asks the member to confirm.
+   */
+  emailConfirmed: boolean;
+  /** For the admin tab (A58): when the account was made, and when the member last joined the band. */
+  createdAt?: Date | null;
+  lastSeenAt?: Date | null;
 }
 
 /** RFP §8's profile fields. All optional; blank means not shown. */
@@ -232,6 +242,13 @@ export interface Store {
   /** Returns the member and marks the token used, or null if unknown/expired/used. */
   consumeReset(tokenHash: string, now?: Date): Promise<Member | null>;
 
+  /** RFD A55. Same rules as resets: only the newest link for a member works, once. */
+  createEmailConfirmation(tokenHash: string, memberId: number, expiresAt: Date): Promise<void>;
+  /** Marks the token used and the member's address confirmed; null if unknown/expired/used. */
+  consumeEmailConfirmation(tokenHash: string, now?: Date): Promise<Member | null>;
+  /** RFD A56: for each member with an unused link, when the newest one expires. */
+  pendingConfirmations(): Promise<Map<number, Date>>;
+
   createExam(e: Omit<Exam, 'id' | 'startedAt' | 'submittedAt' | 'typed' | 'correct' | 'passed'>): Promise<Exam>;
   examById(id: number): Promise<Exam | null>;
   /** Record a submission. False if it was already submitted — an exam is marked once. */
@@ -301,6 +318,7 @@ export class MemoryStore implements Store {
   private members: Member[] = [];
   private sessions = new Map<string, { memberId: number; expiresAt: Date }>();
   private resets = new Map<string, { memberId: number; expiresAt: Date; used: boolean }>();
+  private confirmations = new Map<string, { memberId: number; expiresAt: Date; used: boolean }>();
   private contacts: Contact[] = [];
   private notes = new Map<string, ContactNote>();
   private reports: Report[] = [];
@@ -314,6 +332,7 @@ export class MemoryStore implements Store {
     if (this.members.some((x) => x.email === m.email)) throw new Error('email taken');
     const member: Member = {
       id: this.nextId++, ...m, profile: {}, mutedUntil: null, removed: false, keepRecords: false,
+      emailConfirmed: false, createdAt: new Date(), lastSeenAt: null,
     };
     this.members.push(member);
     return { ...member };
@@ -355,8 +374,10 @@ export class MemoryStore implements Store {
     m.profile = {};
     m.removed = true;
     m.verified = false;
+    m.emailConfirmed = false;
     await this.deleteSessionsFor(id);
     for (const [k, r] of this.resets) if (r.memberId === id) this.resets.delete(k);
+    for (const [k, r] of this.confirmations) if (r.memberId === id) this.confirmations.delete(k);
     // The member row is tombstoned rather than deleted — contacts have to keep
     // pointing somewhere — so ON DELETE CASCADE never fires. Exams hold what
     // was typed, and the notice says the account is emptied, so take them.
@@ -440,7 +461,7 @@ export class MemoryStore implements Store {
     this.weights.delete(memberId);
     this.position.delete(memberId);
   }
-  async touch(): Promise<void> { /* nothing to record in memory */ }
+  async touch(id: number): Promise<void> { const m = this.members.find((x) => x.id === id); if (m) m.lastSeenAt = new Date(); }
 
   async createSession(tokenHash: string, memberId: number, expiresAt: Date): Promise<void> {
     this.sessions.set(tokenHash, { memberId, expiresAt });
@@ -465,6 +486,29 @@ export class MemoryStore implements Store {
     r.used = true;
     return this.memberById(r.memberId);
   }
+
+  async createEmailConfirmation(tokenHash: string, memberId: number, expiresAt: Date): Promise<void> {
+    for (const r of this.confirmations.values()) if (r.memberId === memberId) r.used = true;
+    this.confirmations.set(tokenHash, { memberId, expiresAt, used: false });
+  }
+  async consumeEmailConfirmation(tokenHash: string, now = new Date()): Promise<Member | null> {
+    const r = this.confirmations.get(tokenHash);
+    if (!r || r.used || r.expiresAt <= now) return null;
+    r.used = true;
+    this.must(r.memberId).emailConfirmed = true;
+    return this.memberById(r.memberId);
+  }
+  async pendingConfirmations(): Promise<Map<number, Date>> {
+    const out = new Map<number, Date>();
+    for (const r of this.confirmations.values()) {
+      if (r.used) continue;
+      const prev = out.get(r.memberId);
+      if (!prev || r.expiresAt > prev) out.set(r.memberId, r.expiresAt);
+    }
+    return out;
+  }
+  /** Tests only: the state a member registered before A55 is left in. */
+  setEmailConfirmedForTest(id: number, confirmed: boolean): void { this.must(id).emailConfirmed = confirmed; }
 
   private exams: Exam[] = [];
   private certificates: Certificate[] = [];
@@ -564,13 +608,17 @@ interface MemberRow {
   password_hash: string; role: Role; profile: Profile; muted_until: Date | null; removed: boolean;
   verified: boolean;
   keep_records: boolean;
+  email_confirmed: boolean;
+  created_at?: Date | null;
+  last_seen_at?: Date | null;
 }
 
 const toMember = (r: MemberRow): Member => ({
   id: Number(r.id), callsign: r.callsign, training: r.training, name: r.name, email: r.email,
   passwordHash: r.password_hash, role: r.role, profile: r.profile ?? {},
   mutedUntil: r.muted_until, removed: r.removed, verified: r.verified,
-  keepRecords: r.keep_records,
+  keepRecords: r.keep_records, emailConfirmed: r.email_confirmed,
+  createdAt: r.created_at ?? null, lastSeenAt: r.last_seen_at ?? null,
 });
 
 interface ContactRow {
@@ -586,7 +634,7 @@ const toContact = (r: ContactRow): Contact => ({
 });
 
 const MEMBER_COLS =
-  'id, callsign, training, name, email, password_hash, role, profile, muted_until, removed, verified, keep_records';
+  'id, callsign, training, name, email, password_hash, role, profile, muted_until, removed, verified, keep_records, email_confirmed, created_at, last_seen_at';
 
 interface ExamRow {
   id: string; member_id: string; characters: string; character_wpm: number; effective_wpm: number;
@@ -698,11 +746,12 @@ export class PgStore implements Store {
   async deleteMember(id: number): Promise<void> {
     await this.pool.query(
       `UPDATE members SET callsign = $2, email = $3, name = 'Deleted member', password_hash = '!',
-       profile = '{}'::jsonb, removed = TRUE, verified = FALSE, muted_until = NULL WHERE id = $1`,
+       profile = '{}'::jsonb, removed = TRUE, verified = FALSE, email_confirmed = FALSE, muted_until = NULL WHERE id = $1`,
       [id, `DELETED-${String(id)}`, `deleted-${String(id)}@deleted.invalid`],
     );
     await this.pool.query('DELETE FROM sessions WHERE member_id = $1', [id]);
     await this.pool.query('DELETE FROM password_resets WHERE member_id = $1', [id]);
+    await this.pool.query('DELETE FROM email_confirmations WHERE member_id = $1', [id]);
     // Tombstone, not DELETE, so the cascade on these never fires by itself.
     await this.pool.query('DELETE FROM certificates WHERE member_id = $1', [id]);
     await this.pool.query('DELETE FROM exams WHERE member_id = $1', [id]);
@@ -943,6 +992,34 @@ export class PgStore implements Store {
       [tokenHash, now],
     );
     return rows[0] ? this.memberById(Number(rows[0].member_id)) : null;
+  }
+
+  async createEmailConfirmation(tokenHash: string, memberId: number, expiresAt: Date): Promise<void> {
+    await this.pool.query('UPDATE email_confirmations SET used = TRUE WHERE member_id = $1', [memberId]);
+    await this.pool.query(
+      'INSERT INTO email_confirmations (token_hash, member_id, expires_at) VALUES ($1, $2, $3)',
+      [tokenHash, memberId, expiresAt],
+    );
+  }
+  async consumeEmailConfirmation(tokenHash: string, now = new Date()): Promise<Member | null> {
+    // One statement, so two clicks on the same link cannot both succeed.
+    const { rows } = await this.pool.query<{ member_id: string }>(
+      `WITH used AS (
+         UPDATE email_confirmations SET used = TRUE
+         WHERE token_hash = $1 AND used = FALSE AND expires_at > $2 RETURNING member_id
+       )
+       UPDATE members SET email_confirmed = TRUE FROM used WHERE members.id = used.member_id
+       RETURNING members.id AS member_id`,
+      [tokenHash, now],
+    );
+    return rows[0] ? this.memberById(Number(rows[0].member_id)) : null;
+  }
+
+  async pendingConfirmations(): Promise<Map<number, Date>> {
+    const { rows } = await this.pool.query<{ member_id: string; expires_at: Date }>(
+      'SELECT member_id, max(expires_at) AS expires_at FROM email_confirmations WHERE used = FALSE GROUP BY member_id',
+    );
+    return new Map(rows.map((r) => [Number(r.member_id), r.expires_at]));
   }
 
   async createExam(e: Omit<Exam, 'id' | 'startedAt' | 'submittedAt' | 'typed' | 'correct' | 'passed'>): Promise<Exam> {

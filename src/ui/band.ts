@@ -30,6 +30,7 @@ import {
 } from '../core/tuning';
 import { systemRandom } from '../core/random';
 import { api, ApiError, type ContactRecord, type MemberInfo } from '../net/api';
+import { emailNotice, showRegisteredDialog } from './email-confirm';
 import { Contact } from '../net/peer';
 import { readSession, writeMemberCallsign, writeSession } from '../net/session';
 import { BandSocket, type SocketState } from '../net/socket';
@@ -138,6 +139,9 @@ export function bandView(ctx: Ctx): View {
      * computer, and the only way to know is to ask.
      */
     const rKeep = el('input', { type: 'checkbox' });
+    // RFD A55: a field no person sees or reaches. A bot filling in every
+    // input fills this one too, and the server refuses the registration.
+    const rTrap = el('input', { type: 'text', name: 'website', autocomplete: 'off', tabindex: '-1', 'aria-hidden': 'true' });
     const register = el('button', { class: 'btn', text: 'Create account' });
 
     const resetToken = /#reset=([A-Za-z0-9_-]+)/.exec(window.location.hash)?.[1] ?? null;
@@ -180,22 +184,30 @@ export function bandView(ctx: Ctx): View {
 
     register.addEventListener('click', () => attempt(async () => {
       const input: {
-        name: string; email: string; password: string; callsign?: string; keepRecords?: boolean;
+        name: string; email: string; password: string; callsign?: string; keepRecords?: boolean; website?: string;
       } = {
         name: rName.value.trim(), email: rEmail.value.trim(), password: rPassword.value,
       };
       if (rCall.value.trim()) input.callsign = rCall.value.trim();
       if (rKeep.checked) input.keepRecords = true;
+      if (rTrap.value !== '') input.website = rTrap.value;
       const r = await api.register(input);
       writeSession(r.token);
       writeMemberCallsign(r.member.callsign, r.member.name);
       member = r.member;
-      ctx.toast(r.member.training
+      // RFD A55: the server has mailed a confirmation link, or says it could not.
+      const mail = r.confirmationSent === undefined ? ''
+        : r.confirmationSent
+          ? ` We have emailed a confirmation link to ${r.member.email} from noreply@mikroutik.com — check your spam folder if it is not in your inbox.`
+          : ' The confirmation mail could not be sent just now; use "Send the link again" below.';
+      ctx.toast((r.member.training
         ? `Welcome. Your training identifier is ${r.member.callsign}.`
         : r.member.verified
           ? `Welcome, ${r.member.callsign}.`
-          : `Welcome, ${r.member.callsign}. An administrator will confirm your callsign; until then it is marked unconfirmed on the band.`, 'good');
+          : `Welcome, ${r.member.callsign}.`) + mail, 'good');
       render();
+      // RFD A56: a window that stays until closed, naming the sender and the spam folder.
+      if (r.confirmationSent !== undefined) showRegisteredDialog(r.member.email, r.confirmationSent);
     }, 'could not create the account'));
 
     doReset.addEventListener('click', () => {
@@ -230,22 +242,25 @@ export function bandView(ctx: Ctx): View {
       message,
       el('h3', { text: 'New here?' }),
       el('p', { class: 'hint' },
-        'Give your callsign if you hold one — an administrator confirms it before it counts as yours, and until then '
-        + 'it is marked unconfirmed on the band. If you are not licensed, leave it blank and you will be issued a '
+        'We email you a link from noreply@mikroutik.com to confirm your address (check your spam folder if it does '
+        + 'not arrive); the band opens to you once you have. Give your callsign '
+        + 'if you hold one — it is confirmed together with your address, and an administrator can withdraw it if it '
+        + 'turns out not to be yours. If you are not licensed, leave it blank and you will be issued a '
         + 'training identifier: it begins A0, a series no real station can ever hold, and is labelled as training '
         + 'wherever it appears.'),
       field('Name', rName),
       field('Email', rEmail),
       field('Password', rPassword),
       field('Callsign (optional)', rCall),
-      el('label', { class: 'field' },
-        el('span', { class: 'control' }, rKeep, el('span', { text: ' Keep my training records on the server' }))),
+      // Left-aligned like the hint under it, using the same .check row as Settings' checkboxes.
+      el('label', { class: 'check', style: 'margin: 6px 0 2px' }, rKeep, el('span', { text: 'Keep my training records on the server' })),
       el('p', { class: 'hint' },
         'Optional, and off unless you tick it. With it on, a summary of each practice session is kept on the '
         + 'server so you can see your progress from any computer or phone and carry on where you left off. '
         + 'Your keystrokes are never sent — only how many characters you attempted and how many you got right. '
         + 'Nobody else can see it, not even an administrator. You can turn it off later under "Your account" on the Settings tab, and '
         + 'turning it off deletes everything already stored.'),
+      el('div', { class: 'register-trap', style: 'position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden' }, rTrap),
       el('div', { class: 'row' }, register),
     );
     return panel;
@@ -1185,7 +1200,8 @@ export function bandView(ctx: Ctx): View {
       el('h2', { text: 'Signed in' }),
       el('p', { class: 'hint' },
         el('span', { text: `${me.name} · ${idInfo.training ? `training identifier ${idInfo.text}` : idInfo.text}` }),
-        el('span', { text: me.verified || idInfo.training ? '' : ', awaiting confirmation by an administrator' })),
+        el('span', { text: me.verified || idInfo.training ? '' : ', not yet confirmed' })),
+      emailNotice(ctx, me),
       el('p', { class: 'hint', text:
         'Your profile, password, certificates, training records and the button that closes your '
         + 'account are all on the Settings tab.' }),
@@ -1261,6 +1277,41 @@ export function bandView(ctx: Ctx): View {
   }
 
   // ------------------------------------------------------------------
+  /**
+   * RFD A57: a member whose address is not confirmed sees this instead of
+   * the band. The server refuses them anyway, but drawing the band under a
+   * refusal looked like being on the air, and the reminder ended up at the
+   * foot of the page. No connection is attempted from here.
+   */
+  function unconfirmedPanel(me: MemberInfo): HTMLElement {
+    const idInfo = describeIdentifier(me.callsign);
+    const recheck = el('button', { class: 'btn primary', text: 'I have confirmed — check again' });
+    const signOut = el('button', { class: 'btn', text: 'Sign out' });
+    recheck.addEventListener('click', () => void (async () => {
+      recheck.disabled = true;
+      await whoAmI();
+      render();
+      if (member !== null && member.emailConfirmed === false) {
+        ctx.toast('Not confirmed yet. Open the link in the email first, then check again.', 'warn');
+      }
+    })());
+    signOut.addEventListener('click', () => void (async () => {
+      try { await api.logout(); } catch { /* the token is going anyway */ }
+      writeSession(null);
+      writeMemberCallsign(null);
+      member = null;
+      render();
+    })());
+    return el('section', { class: 'panel' },
+      el('h2', { text: 'Not on the air yet' }),
+      el('p', { class: 'hint', text:
+        `${me.name} · ${idInfo.training ? `training identifier ${idInfo.text}` : idInfo.text}. `
+        + 'The band opens to you once you have confirmed your email address. Every other tab works meanwhile.' }),
+      emailNotice(ctx, me),
+      el('div', { class: 'row' }, recheck, signOut),
+    );
+  }
+
   let currentDispose: (() => void) | null = null;
   function render(): void {
     if (disposed) return;
@@ -1270,6 +1321,10 @@ export function bandView(ctx: Ctx): View {
     ctx.setMember(member);
     if (member === null) {
       node.append(unreachable ? unreachablePanel() : accountPanel());
+      return;
+    }
+    if (member.emailConfirmed === false) {
+      node.append(unconfirmedPanel(member));
       return;
     }
     const panel = bandPanel(member);

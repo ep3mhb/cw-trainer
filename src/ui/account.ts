@@ -24,6 +24,7 @@ import { pushTraining, setKeepRecords } from '../net/training';
 import { describeIdentifier } from '../core/callsign';
 import { certificate, factsFromSheet, longDate } from './certificate';
 import { clear, el } from './dom';
+import { emailNotice } from './email-confirm';
 import { PRIVACY_URL, type Ctx } from './context';
 
 export interface AccountHooks {
@@ -259,7 +260,8 @@ export function accountSection(ctx: Ctx, me: MemberInfo, hooks: AccountHooks): H
     el('h2', { text: 'Your account' }),
     el('p', { class: 'hint' },
       `${me.name} · ${me.email}` + (idInfo.training ? ` · training identifier ${idInfo.text}` : me.verified
-        ? ` · ${idInfo.text}` : ` · ${idInfo.text}, awaiting confirmation by an administrator`)),
+        ? ` · ${idInfo.text}` : ` · ${idInfo.text}, not yet confirmed`)),
+    emailNotice(ctx, me),
     el('h3', { text: 'Profile' }),
     el('p', { class: 'hint', text: 'What the station you work may be told, as you would send it. Leave a field blank and nothing is shown.' }),
     el('div', { class: 'profile-grid' }, qthF, gridF, rigF, antF, licF, sideF, wpmF),

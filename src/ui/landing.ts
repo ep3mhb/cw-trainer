@@ -67,7 +67,7 @@ export function shouldShowLanding(
    * decided by prefix elsewhere and a new one could be added without
    * anybody thinking of this function.
    */
-  const errand = hash.startsWith('#reset=') || hash.startsWith('#certificate=');
+  const errand = hash.startsWith('#reset=') || hash.startsWith('#certificate=') || hash.startsWith('#confirm-email=');
   return !errand;
 }
 

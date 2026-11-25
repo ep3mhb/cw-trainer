@@ -24,10 +24,11 @@ import {
   MIN_PASSWORD_LENGTH, hashPassword, looksLikeEmail, newToken, tokenHash, verifyPassword,
 } from './auth';
 import type { Config } from './config';
+import { LIMITS, Limiter } from './limits';
 import type { Mailer } from './mail';
 import type { Member, OpenSession, Profile, Store, TrainingCharacter, TrainingUpload } from './store';
 
-type AdminAction = 'verify' | 'unverify' | 'disable' | 'enable' | 'delete' | 'reset' | 'unmute';
+type AdminAction = 'verify' | 'unverify' | 'disable' | 'enable' | 'delete' | 'reset' | 'unmute' | 'confirm-link';
 
 export interface ApiResponse {
   status: number;
@@ -46,6 +47,8 @@ export interface ApiRequest {
   /** Bearer token from the Authorization header, if any. */
   token: string | null;
   body: unknown;
+  /** The client's address as server.ts determined it (RFD A55), for rate limits. */
+  ip?: string;
 }
 
 const ok = (body: unknown): ApiResponse => ({ status: 200, body });
@@ -64,15 +67,28 @@ export function publicMember(m: Member): Record<string, unknown> {
     // it must learn that from the server rather than from a local setting
     // that could disagree with it.
     keepRecords: m.keepRecords,
+    // RFD A55.
+    emailConfirmed: m.emailConfirmed,
   };
 }
 
-/** What an administrator sees of a member: the above plus account state. */
-export function adminMemberView(m: Member): Record<string, unknown> {
-  return { ...publicMember(m), disabled: m.removed, mutedUntil: m.mutedUntil };
+/**
+ * What an administrator sees of a member: the above plus account state, and
+ * (RFD A56) when the newest unused confirmation link was sent, if any.
+ */
+export function adminMemberView(m: Member, linkExpires?: Date, now = Date.now()): Record<string, unknown> {
+  const pending = !m.emailConfirmed && linkExpires !== undefined;
+  return {
+    ...publicMember(m), disabled: m.removed, mutedUntil: m.mutedUntil,
+    confirmationSentAt: pending ? new Date(linkExpires.getTime() - CONFIRM_TTL_MS).toISOString() : null,
+    confirmationExpired: pending ? linkExpires.getTime() <= now : false,
+    // A58: for the admin table.
+    createdAt: m.createdAt ? m.createdAt.toISOString() : null,
+    lastSeenAt: m.lastSeenAt ? m.lastSeenAt.toISOString() : null,
+  };
 }
 
-const ADMIN_MEMBER_ROUTE = /^\/api\/admin\/members\/(\d+)\/(verify|unverify|disable|enable|delete|reset|unmute)$/;
+const ADMIN_MEMBER_ROUTE = /^\/api\/admin\/members\/(\d+)\/(verify|unverify|disable|enable|delete|reset|unmute|confirm-link)$/;
 const ADMIN_REPORT_ROUTE = /^\/api\/admin\/reports\/(\d+)\/resolve$/;
 // Lowercase accepted and folded in the handler: serials get read aloud and
 // typed in by hand, and case is not part of the secret.
@@ -211,6 +227,18 @@ function parseUpload(raw: unknown): TrainingUpload | null {
 }
 
 const RESET_TTL_MS = 60 * 60 * 1000;
+/**
+ * RFD A55. Longer than a reset, because nobody is locked out while it waits
+ * and a member may register in the evening and read their mail the next
+ * day. A lapsed link costs one click on "Send the link again".
+ */
+const CONFIRM_TTL_MS = 48 * 60 * 60 * 1000;
+/** How soon a member may ask for the confirmation mail again. */
+const RESEND_GAP_MS = 60 * 1000;
+const APP_NAME = 'RESONIK CW Trainer';
+
+/** A UTC time a reader in any country can place: 2026-11-25 14:05 UTC. */
+const utc = (ms: number): string => `${new Date(ms).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 /** An exam left open indefinitely is an invitation to sit it with help. */
 const EXAM_TTL_MS = 60 * 60 * 1000;
 /** Characters per group, matching an ordinary drill. */
@@ -271,11 +299,33 @@ export class Api {
     private readonly log: (line: string) => void = () => undefined,
   ) {}
 
+  /** RFD A55: when each member last asked for the confirmation mail, in memory only. */
+  private readonly lastConfirmationSent = new Map<number, number>();
+  /** RFD A55: rate limits, in memory only. */
+  private readonly limits = new Limiter(() => this.now());
+
+  private take(key: string, l: { limit: number; windowMs: number }): boolean {
+    return this.limits.take(key, l.limit, l.windowMs);
+  }
+
+  /**
+   * Every mail goes through here so that one ceiling covers all of them.
+   * Over the ceiling the mail is not sent and the reason is logged: a flood
+   * of sign-ups must not become a flood of mail from mikroutik.com.
+   */
+  private async mail(to: string, subject: string, text: string): Promise<void> {
+    if (!this.take('mail:all', LIMITS.mailGlobal)) {
+      this.log(`MAIL HELD (hourly ceiling of ${String(LIMITS.mailGlobal.limit)} reached) to=${to} subject="${subject}"`);
+      throw new Error('hourly mail ceiling reached');
+    }
+    await this.mailer.send(to, subject, text);
+  }
+
   async handle(req: ApiRequest): Promise<ApiResponse> {
     const route = `${req.method} ${req.path}`;
     switch (route) {
-      case 'POST /api/register': return this.register(req.body);
-      case 'POST /api/login': return this.login(req.body);
+      case 'POST /api/register': return this.register(req.body, req.ip ?? '');
+      case 'POST /api/login': return this.login(req.body, req.ip ?? '');
       case 'POST /api/logout': return this.logout(req.token);
       case 'GET /api/me': return this.me(req.token);
       case 'PUT /api/me/profile': return this.updateProfile(req.token, req.body);
@@ -289,8 +339,10 @@ export class Api {
       case 'GET /api/me/training': return this.trainingReport(req.token);
       case 'POST /api/me/certificates/visibility':
         return this.setCertificateVisibility(req.token, req.body);
-      case 'POST /api/reset/request': return this.resetRequest(req.body);
+      case 'POST /api/reset/request': return this.resetRequest(req.body, req.ip ?? '');
       case 'POST /api/reset/confirm': return this.resetConfirm(req.body);
+      case 'POST /api/email/confirm': return this.confirmEmail(req.body);
+      case 'POST /api/me/email/resend': return this.resendConfirmation(req.token);
       case 'GET /api/me/contacts': return this.contacts(req.token);
       case 'GET /api/admin/members': return this.adminMembers(req.token);
       case 'GET /api/admin/reports': return this.adminReports(req.token);
@@ -329,8 +381,13 @@ export class Api {
    * callsign named in ADMIN_CALLSIGN registers as admin; everyone else as
    * member or student.
    */
-  private async register(body: unknown): Promise<ApiResponse> {
+  private async register(body: unknown, ip: string): Promise<ApiResponse> {
     if (!isObject(body)) return bad(400, 'expected a JSON object');
+    // RFD A55. A field no person sees: the form hides it, a bot fills it in.
+    if (str(body['website']) && body['website'].trim() !== '') {
+      this.log(`registration refused: trap field filled (ip ${ip || '?'})`);
+      return bad(400, 'the registration could not be accepted');
+    }
     const name = str(body['name']) ? body['name'].trim() : '';
     const email = str(body['email']) ? body['email'].trim().toLowerCase() : '';
     const password = str(body['password']) ? body['password'] : '';
@@ -340,6 +397,18 @@ export class Api {
     if (!looksLikeEmail(email)) return bad(400, 'that does not look like an email address');
     if (password.length < MIN_PASSWORD_LENGTH) return bad(400, `password must be at least ${String(MIN_PASSWORD_LENGTH)} characters`);
     if (await this.store.memberByEmail(email)) return bad(409, 'an account with that email already exists');
+    // RFD A55. Counted only once the form is valid, so a member correcting a
+    // typo is not charged for it; the per-address check comes first so one
+    // source cannot use up everyone's share.
+    if (ip && !this.limits.allows(`reg-ip:${ip}`, LIMITS.registerPerIp.limit, LIMITS.registerPerIp.windowMs)) {
+      this.log(`registration refused: too many from ${ip}`);
+      return bad(429, 'too many registrations from your connection; please try again in an hour');
+    }
+    if (!this.take('reg:all', LIMITS.registerGlobal)) {
+      this.log('registration refused: hourly ceiling reached');
+      return bad(429, 'registration is busy just now; please try again in an hour');
+    }
+    if (ip) this.take(`reg-ip:${ip}`, LIMITS.registerPerIp);
 
     let callsign: string;
     let training: boolean;
@@ -385,17 +454,191 @@ export class Api {
     }
     this.log(`registered ${callsign}${training ? ' (training)' : verified ? '' : ' (awaiting confirmation)'} as ${role}`);
     const token = await this.issueSession(created);
-    return { status: 201, body: { token, member: publicMember(created) } };
+    // RFD A55. Neither mail failing undoes the registration: the account
+    // exists and works, the member can ask for the link again, and the
+    // administrator sees every member on the admin tab regardless.
+    const confirmationSent = await this.sendConfirmation(created);
+    await this.noticeOfRegistration(created);
+    return { status: 201, body: { token, member: publicMember(created), confirmationSent } };
   }
 
-  private async login(body: unknown): Promise<ApiResponse> {
+  /* ---------------------------------------------------------------- *
+   * RFD A55: confirming the address, and telling the administrator.
+   * ---------------------------------------------------------------- */
+
+  /**
+   * Mail the member a confirmation link. True if it went. `existing` is the
+   * administrator's mail to a member who registered before A55: it explains
+   * why they are being asked rather than thanking them for registering.
+   */
+  private async sendConfirmation(member: Member, existing = false): Promise<boolean> {
+    const token = newToken();
+    await this.store.createEmailConfirmation(tokenHash(token), member.id, new Date(this.now() + CONFIRM_TTL_MS));
+    this.lastConfirmationSent.set(member.id, this.now());
+    const link = `${this.config.appOrigin}/#confirm-email=${token}`;
+    const next = member.training || member.verified
+      ? ''
+      : this.autoApprove
+        ? 'Confirming your address also confirms your callsign. Until then you can practise and go on the band, '
+          + 'where your callsign is marked "unconfirmed".\n\n'
+        : 'After that, the administrator will check your callsign and confirm your membership. Until then you can '
+          + 'practise and go on the band, where your callsign is marked "unconfirmed".\n\n';
+    try {
+      await this.mail(
+        member.email,
+        `${APP_NAME}: please confirm your email address`,
+        (existing
+          ? `Hello ${member.name},\n\n${APP_NAME} now asks every member to confirm their email address, `
+            + `to keep the band free of throwaway accounts. Your account, ${member.callsign}, is kept off the band `
+            + 'until you do; practice is not affected.\n\n'
+          : `Hello ${member.name},\n\nThank you for registering with ${APP_NAME} as ${member.callsign}.\n\n`)
+        + `Please confirm that this is your email address by opening this link within 48 hours:\n\n${link}\n\n`
+        + next
+        + 'If you did not register, ignore this mail; the account stays unconfirmed.\n\n'
+        + `73\n${APP_NAME}\n${this.config.appOrigin}\n`,
+      );
+      return true;
+    } catch (error) {
+      this.log(`confirmation mail to ${member.email} failed: ${String(error instanceof Error ? error.message : error)}`);
+      return false;
+    }
+  }
+
+  /** RFD A55: on unless the server sets AUTO_APPROVE=0. */
+  private get autoApprove(): boolean { return this.config.autoApprove !== false; }
+
+  /**
+   * Where notices for the administrator go: ADMIN_EMAIL if set, otherwise
+   * the address on the administrator's own account.
+   */
+  private async adminAddress(): Promise<string | null> {
+    if (this.config.adminEmail) return this.config.adminEmail;
+    const admin = await this.store.memberByCallsign(this.config.adminCallsign);
+    return admin && !admin.removed && admin.role === 'admin' ? admin.email : null;
+  }
+
+  /** A notice to the administrator. Never fails the request that caused it. */
+  private async tellAdmin(subject: string, text: string): Promise<void> {
+    const to = await this.adminAddress();
+    if (to === null) {
+      this.log(`admin notice not sent (no administrator address): ${subject}`);
+      return;
+    }
+    try {
+      await this.mail(to, subject, text);
+    } catch (error) {
+      this.log(`admin notice to ${to} failed: ${String(error instanceof Error ? error.message : error)}`);
+    }
+  }
+
+  private describeForAdmin(m: Member): string {
+    return `Callsign: ${m.callsign}${m.training ? ' (training identifier, issued by the application)' : ''}\n`
+      + `Name:     ${m.name}\n`
+      + `Email:    ${m.email}\n`;
+  }
+
+  /** Every registration is reported; a claimed callsign is marked as waiting on the administrator. */
+  private async noticeOfRegistration(m: Member): Promise<void> {
+    if (m.role === 'admin') return;
+    const needsYou = !m.training && !m.verified && !this.autoApprove;
+    await this.tellAdmin(
+      needsYou
+        ? `${APP_NAME}: ${m.callsign} has registered and awaits your approval`
+        : m.training
+          ? `${APP_NAME}: new student ${m.callsign} has registered`
+          : `${APP_NAME}: new member ${m.callsign} has registered`,
+      `A new member registered at ${utc(this.now())}.\n\n${this.describeForAdmin(m)}\n`
+      + (m.training
+        ? 'A training identifier needs no approval. You will get a second mail when they have confirmed their address.\n\n'
+        : needsYou
+          ? 'Their email address is not confirmed yet. You will get a second mail when they have confirmed it; '
+            + 'confirm their callsign after that.\n\n'
+          : 'Their callsign will be confirmed automatically when they confirm their email address; you will get a '
+            + 'second mail then. Nothing to do unless the callsign is not theirs.\n\n')
+      + `Admin tab: ${this.config.appOrigin}/#admin\n`,
+    );
+  }
+
+  /** The link in the mail. Anyone holding it may use it; no session is needed. */
+  private async confirmEmail(body: unknown): Promise<ApiResponse> {
+    if (!isObject(body) || !str(body['token'])) return bad(400, 'token required');
+    const member = await this.store.consumeEmailConfirmation(tokenHash(body['token']), new Date(this.now()));
+    if (!member || member.removed) {
+      return bad(400, 'that confirmation link is not valid any more; sign in and ask for a new one');
+    }
+    this.log(`email confirmed ${member.callsign}`);
+    let confirmed = member;
+    let approvedNow = false;
+    if (!member.training && !member.verified && this.autoApprove) {
+      // RFD A55: the address is the approval. The administrator is told,
+      // and "Withdraw confirmation" on the admin tab undoes it.
+      await this.store.setVerified(member.id, true);
+      confirmed = (await this.store.memberById(member.id)) ?? { ...member, verified: true };
+      approvedNow = true;
+      this.log(`callsign ${member.callsign} confirmed automatically with the email address`);
+    }
+    const needsYou = !confirmed.training && !confirmed.verified;
+    await this.tellAdmin(
+      needsYou
+        ? `${APP_NAME}: ${member.callsign} confirmed their email — please approve the membership`
+        : approvedNow
+          ? `${APP_NAME}: ${member.callsign} confirmed their email and is now a member`
+          : `${APP_NAME}: ${member.callsign} confirmed their email`,
+      `${member.callsign} confirmed their email address at ${utc(this.now())}.\n\n${this.describeForAdmin(member)}\n`
+      + (needsYou
+        ? 'Their callsign is waiting for you. Open the admin tab and press "Confirm callsign" once you are satisfied '
+          + `the callsign is theirs:\n\n${this.config.appOrigin}/#admin\n`
+        : approvedNow
+          ? 'Their callsign was confirmed automatically. Nothing to do — unless the callsign is not theirs, in which '
+            + `case press "Withdraw confirmation" on the admin tab:\n\n${this.config.appOrigin}/#admin\n`
+          : member.training
+            ? 'A training identifier needs no approval; nothing to do.\n'
+            : 'You have already confirmed their callsign; nothing to do.\n'),
+    );
+    return ok({ member: publicMember(confirmed) });
+  }
+
+  /** "Send the link again", for a signed-in member whose address is unconfirmed. */
+  private async resendConfirmation(token: string | null): Promise<ApiResponse> {
+    const m = await this.session(token);
+    if (!m) return bad(401, 'not signed in');
+    if (m.emailConfirmed) return bad(400, 'your email address is already confirmed');
+    const last = this.lastConfirmationSent.get(m.id);
+    if (last !== undefined && this.now() - last < RESEND_GAP_MS) {
+      return bad(429, 'a link was sent less than a minute ago; please check your inbox and spam folder');
+    }
+    if (!this.take(`resend:${String(m.id)}`, LIMITS.resendPerMember)) {
+      return bad(429, 'that is enough links for one day; please check your spam folder, or try again tomorrow');
+    }
+    if (!(await this.sendConfirmation(m))) {
+      return bad(503, 'the mail could not be sent right now; please try again later');
+    }
+    return ok({ message: `a new link is on its way to ${m.email}` });
+  }
+
+  private async login(body: unknown, ip: string): Promise<ApiResponse> {
     if (!isObject(body) || !str(body['email']) || !str(body['password'])) return bad(400, 'email and password required');
-    const member = await this.store.memberByEmail(body['email'].trim());
+    const email = body['email'].trim().toLowerCase();
+    // RFD A55: failed attempts are counted per address and per connection;
+    // past the limit nothing is checked at all, right or wrong.
+    const ipKey = `login-ip:${ip}`;
+    const emailKey = `login-email:${email}`;
+    if ((ip && !this.limits.allows(ipKey, LIMITS.loginFailPerIp.limit, LIMITS.loginFailPerIp.windowMs))
+      || !this.limits.allows(emailKey, LIMITS.loginFailPerEmail.limit, LIMITS.loginFailPerEmail.windowMs)) {
+      this.log(`sign-in refused: too many failures (ip ${ip || '?'})`);
+      return bad(429, 'too many failed sign-ins; please wait fifteen minutes, or reset your password');
+    }
+    const member = await this.store.memberByEmail(email);
     // Same answer whether the address is unknown or the password wrong, so
     // the login form cannot be used to discover who has an account.
-    const refused = bad(401, 'email or password not recognised');
-    if (!member || member.removed) return refused;
-    if (!(await verifyPassword(body['password'], member.passwordHash))) return refused;
+    const refused = (): ApiResponse => {
+      if (ip) this.take(ipKey, LIMITS.loginFailPerIp);
+      this.take(emailKey, LIMITS.loginFailPerEmail);
+      return bad(401, 'email or password not recognised');
+    };
+    if (!member || member.removed) return refused();
+    if (!(await verifyPassword(body['password'], member.passwordHash))) return refused();
+    this.limits.clear(emailKey);
     const token = await this.issueSession(member);
     return ok({ token, member: publicMember(member) });
   }
@@ -862,15 +1105,21 @@ licence, and it is not an examination for one.</p>`);
    * Always answers "if that address has an account, mail is on its way" —
    * the same whether it does or not — for the same reason login does.
    */
-  private async resetRequest(body: unknown): Promise<ApiResponse> {
+  private async resetRequest(body: unknown, ip: string): Promise<ApiResponse> {
     if (!isObject(body) || !str(body['email'])) return bad(400, 'email required');
-    const member = await this.store.memberByEmail(body['email'].trim());
-    if (member && !member.removed) {
+    const email = body['email'].trim().toLowerCase();
+    const member = await this.store.memberByEmail(email);
+    // RFD A55: over the limit, the answer is the same and nothing is sent,
+    // so the form cannot be used to fill somebody's inbox.
+    const allowed = (!ip || this.take(`reset-ip:${ip}`, LIMITS.resetPerIp))
+      && this.take(`reset-email:${email}`, LIMITS.resetPerEmail);
+    if (!allowed) this.log(`reset mail not sent: limit reached (ip ${ip || '?'})`);
+    if (allowed && member && !member.removed) {
       const token = newToken();
       await this.store.createReset(tokenHash(token), member.id, new Date(this.now() + RESET_TTL_MS));
       const link = `${this.config.appOrigin}/#reset=${token}`;
       try {
-        await this.mailer.send(
+        await this.mail(
           member.email,
           'CW Trainer: reset your password',
           `Hello ${member.name},\n\nSomeone — probably you — asked to reset the password for ${member.callsign}.\n` +
@@ -943,7 +1192,12 @@ licence, and it is not an examination for one.</p>`);
   private async adminMembers(token: string | null): Promise<ApiResponse> {
     const m = await this.admin(token);
     if (Api.isResponse(m)) return m;
-    return ok({ members: (await this.store.listMembers()).map(adminMemberView) });
+    const links = await this.store.pendingConfirmations();
+    return ok({
+      members: (await this.store.listMembers()).map((x) => adminMemberView(x, links.get(x.id), this.now())),
+      // A58: the admin table words callsign status by whether approval is automatic.
+      autoApprove: this.autoApprove,
+    });
   }
 
   private async adminReports(token: string | null): Promise<ApiResponse> {
@@ -986,6 +1240,14 @@ licence, and it is not an examination for one.</p>`);
       case 'enable':
         await this.store.setRemoved(target.id, false);
         break;
+      case 'confirm-link':
+        // RFD A56: for members registered before A55, who were never sent one.
+        if (target.removed) return bad(400, 'that account is disabled');
+        if (target.emailConfirmed) return bad(400, 'that address is already confirmed');
+        if (!(await this.sendConfirmation(target, true))) {
+          return bad(503, 'the mail could not be sent right now; try again in a while');
+        }
+        break;
       case 'unmute':
         // A mute from the band lasts 24 hours; the administrator who can
         // impose it can lift it early.
@@ -1002,7 +1264,7 @@ licence, and it is not an examination for one.</p>`);
         await this.store.createReset(tokenHash(resetToken), target.id, new Date(this.now() + RESET_TTL_MS));
         const link = `${this.config.appOrigin}/#reset=${resetToken}`;
         try {
-          await this.mailer.send(
+          await this.mail(
             target.email,
             'CW Trainer: an administrator has reset your password',
             `Hello ${target.name},\n\nAn administrator (${admin.callsign}) has reset the password for ${target.callsign}. ` +
@@ -1020,7 +1282,8 @@ licence, and it is not an examination for one.</p>`);
     await this.store.logModeration(admin.id, target.id, action, reason);
     this.log(`admin ${admin.callsign} ${action} ${target.callsign}${reason ? ` — ${reason}` : ''}`);
     const after = await this.store.memberById(target.id);
-    return ok({ member: after ? adminMemberView(after) : null });
+    const links = await this.store.pendingConfirmations();
+    return ok({ member: after ? adminMemberView(after, links.get(after.id), this.now()) : null });
   }
 
   private async adminResolve(token: string | null, reportId: number): Promise<ApiResponse> {

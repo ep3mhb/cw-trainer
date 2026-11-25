@@ -166,6 +166,12 @@ export class Hub {
       this.refuse(socket, 'not-authorised', 'sign in again');
       return null;
     }
+    // RFD A55: the band is where an account can bother other people, so it
+    // waits until the address is confirmed. Practice does not.
+    if (!member.emailConfirmed) {
+      this.refuse(socket, 'not-authorised', 'confirm your email address first — use the link we mailed you');
+      return null;
+    }
 
     // One connection per member. The newer one wins: a member whose laptop
     // went to sleep and who reconnects from their phone should not be told

@@ -1396,3 +1396,54 @@ body.landing-open #panel { margin-top: 0; }
    At 1.1em it draws about 126 px wide, above the 120 px screen minimum. */
 header.top .app-title .brand-logo { display: inline-block; height: 1.1em; width: auto;
   vertical-align: -0.08em; margin-inline-end: 0.45em; }
+
+/* RFD A56: the window shown straight after registering. */
+dialog.notice-dialog {
+  max-width: 520px; width: calc(100% - 32px);
+  background: var(--panel); color: var(--text);
+  border: 1px solid var(--line-2); border-radius: 10px;
+  padding: 20px 22px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+dialog.notice-dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+dialog.notice-dialog h2 { margin: 0 0 10px; }
+dialog.notice-dialog p { line-height: 1.5; margin: 0 0 10px; }
+dialog.notice-dialog .row { justify-content: flex-end; margin-top: 6px; }
+
+/* RFD A58: the admin member table. */
+.admin-filters { gap: 6px; margin: 4px 0 10px; flex-wrap: wrap; }
+.admin-chip { padding: 4px 12px; font-size: 13px; }
+.admin-chip.on { border-color: var(--accent); color: var(--accent); }
+.admin-tr {
+  display: grid; grid-template-columns: 8rem minmax(8rem, 1.4fr) minmax(8rem, 1.4fr) 6.5rem 6.5rem 13.5rem;
+  gap: 10px; align-items: center; padding: 8px 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2);
+}
+.admin-tr.attention { border-color: var(--warn); }
+.admin-th { background: none; border-color: transparent; padding-top: 0; padding-bottom: 0;
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.admin-td { min-width: 0; font-size: 14px; }
+.admin-call { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.admin-call b.mono { color: var(--vfd); text-shadow: 0 0 6px var(--vfd-glow); letter-spacing: 0.06em; }
+.admin-who { display: flex; flex-direction: column; overflow-wrap: anywhere; }
+.admin-who .hint { font-size: 12.5px; }
+.admin-status { font-size: 13px; }
+.admin-status.good { color: var(--good, #6fd08c); }
+.admin-status.warn { color: var(--warn); }
+.admin-status.bad { color: var(--bad, #ff6b6b); }
+.admin-actions { display: flex; gap: 6px; justify-content: flex-end; align-items: center; position: relative; }
+.admin-act .btn, .admin-more > summary.btn { padding: 5px 12px; font-size: 13px; white-space: nowrap; }
+.admin-call .badge { font-size: 10px; padding: 1px 6px; }
+.admin-more > summary { list-style: none; cursor: pointer; }
+.admin-more > summary::-webkit-details-marker { display: none; }
+.admin-menu {
+  position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; display: flex; flex-direction: column;
+  gap: 4px; padding: 6px; min-width: 15rem; background: var(--panel); border: 1px solid var(--line-2);
+  border-radius: 8px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+.admin-menu .btn { text-align: left; font-size: 13px; padding: 6px 10px; }
+.admin-deleted .admin-tr { opacity: 0.7; }
+@media (max-width: 900px) {
+  .admin-tr { grid-template-columns: 1fr auto; }
+  .admin-th { display: none; }
+  .admin-tr > .admin-td:nth-child(4), .admin-tr > .admin-td:nth-child(5) { display: none; }
+}

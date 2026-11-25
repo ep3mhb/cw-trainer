@@ -49,6 +49,12 @@ export interface World {
   mailer: FakeMailer;
   clock: { now: number };
   logged: string[];
+  /**
+   * RFD A55: members made by `member()` have their address confirmed, as
+   * nearly every test wants (the band refuses anyone else). Set false to
+   * test the confirmation itself.
+   */
+  confirmEmails: boolean;
   /** Register and sign in a member, returning their session token. */
   member(name: string, email: string, callsign?: string): Promise<{ token: string; callsign: string }>;
   /** Connect a socket and say hello with a token. */
@@ -67,15 +73,16 @@ export function world(over: Partial<Config> = {}): World {
     now: () => clock.now,
     random: () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; },
   });
-  return {
-    store, api, hub, mailer, clock, logged,
+  const w: World = {
+    store, api, hub, mailer, clock, logged, confirmEmails: true,
     async member(name, email, callsign) {
       const res = await api.handle({
         method: 'POST', path: '/api/register', token: null,
         body: { name, email, password: 'a-good-long-password', ...(callsign ? { callsign } : {}) },
       });
       if (res.status !== 201) throw new Error(`register failed: ${JSON.stringify(res.body)}`);
-      const body = res.body as { token: string; member: { callsign: string } };
+      const body = res.body as { token: string; member: { id: number; callsign: string } };
+      if (w.confirmEmails) store.setEmailConfirmedForTest(body.member.id, true);
       return { token: body.token, callsign: body.member.callsign };
     },
     async join(token) {
@@ -87,4 +94,5 @@ export function world(over: Partial<Config> = {}): World {
       return { socket, send, close: conn.close, id: welcome?.you ?? '' };
     },
   };
+  return w;
 }

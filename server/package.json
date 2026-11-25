@@ -1,6 +1,6 @@
 {
   "name": "cw-trainer-server",
-  "version": "0.10.1",
+  "version": "0.11.2",
   "private": true,
   "type": "module",
   "description": "Signalling, accounts and contact log for CW Trainer live contacts (RFP §7, §8)",

@@ -201,7 +201,7 @@ export function helpView(ctx: Ctx): View {
         '20 September 2026; Phase 2 (accounts and live contacts between members) since 21 September. ' +
         'What each version changed is in the repository\u2019s ROADMAP.'),
       el('p', { class: 'manual-links' },
-        el('b', { text: 'The user manual (PDF), with screenshots of every tab: ' }),
+        el('b', { text: 'The user manual (PDF, about 3.5 MB), with screenshots of every tab: ' }),
         el('a', { href: './manual/CW-Trainer-User-Manual-EN.pdf', target: '_blank', rel: 'noopener', text: 'English' }),
         ' \u00b7 ',
         el('a', { href: './manual/CW-Trainer-User-Manual-FA.pdf', target: '_blank', rel: 'noopener', lang: 'fa', text: '\u0641\u0627\u0631\u0633\u06cc' }),

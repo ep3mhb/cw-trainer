@@ -1,6 +1,6 @@
 # The user manual
 
-Three PDFs, one source: English, Persian and Arabic. The three `content-<lang>.mjs` files hold the text as
+Three PDFs and a web edition, one source: English, Persian and Arabic. The three `content-<lang>.mjs` files hold the text as
 plain data (chapters → sections → blocks); `build.mjs` renders them to HTML
 with the panel's own colours, lets Chromium paginate, reads the result back
 once to learn which page each heading landed on, and renders again with those
@@ -40,6 +40,33 @@ cp out/CW-Trainer-User-Manual-EN-*.pdf ../../public/manual/CW-Trainer-User-Manua
 cp out/CW-Trainer-User-Manual-FA-*.pdf ../../public/manual/CW-Trainer-User-Manual-FA.pdf
 cp out/CW-Trainer-User-Manual-AR-*.pdf ../../public/manual/CW-Trainer-User-Manual-AR.pdf
 ```
+
+### The web edition (0.15.5, RFD A59)
+
+`build-html.mjs` renders the same three content files as one HTML page per
+chapter, plus a contents page, into `public/manual/en|fa|ar/`, with the
+figures in `public/manual/img/`, the fonts in `public/manual/fonts/` and one
+stylesheet, `public/manual/manual.css`. It mirrors `build.mjs` block for
+block and throws on a block type it does not know.
+
+```sh
+node --experimental-strip-types build-html.mjs en fa ar
+```
+
+It writes the list of page addresses to `out/sitemap-urls.txt`; they go in
+`hosting/www-cw/sitemap.xml`. The service worker leaves `/manual/` out of the
+precache and out of its "the page" rule — a chapter treated as the page was
+stored as the application's own `index.html` and served as the application
+offline (shown by `tests/e2e/manual-offline.mjs`, which fails without the
+rule).
+
+### Figures when the local stack is not to hand
+
+The figures are the PDF's own: for 0.15.5 they were taken back out of the
+0.14.3 PDFs with `pdfimages -j` (26 figures plus the cover picture, in
+document order) into `shots-jpg/`, named after the `src` of each `fig` block,
+and both editions were built from those. Retake them with the steps above
+when the screens they show change.
 
 Bump `VERSION` in both content files when the application version changes;
 it is printed on the cover and in the footer. Playwright comes from the

@@ -238,7 +238,7 @@ export function sendView(ctx: Ctx): View {
           '. It is what the browser says about its own buffers, and it goes stale after Bluetooth ' +
           'headphones have been used \u2014 measured on one Mac: 190 ms, then 8.9 ms after quitting the ' +
           'browser completely. ',
-          el('b', { text: 'Press "Measure for real"' }),
+          el('b', { text: 'Press “Measure for real”' }),
           ' to find out what you are actually hearing.'),
       );
       if (measured !== null) {

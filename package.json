@@ -1,6 +1,6 @@
 {
   "name": "cw-trainer",
-  "version": "0.15.4",
+  "version": "0.15.5",
   "private": true,
   "type": "module",
   "description": "Browser-based Morse code (CW) training application \u2014 Phase 1",
@@ -15,7 +15,8 @@
     "lint": "tsc --noEmit",
     "test:e2e": "npm run build && node tests/e2e/smoke.mjs",
     "test:band": "node tests/e2e/band.mjs",
-    "build:single": "npm run build && node scripts/build-single.mjs"
+    "build:single": "npm run build && node scripts/build-single.mjs",
+    "test:manual": "node tests/e2e/manual-offline.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.1",

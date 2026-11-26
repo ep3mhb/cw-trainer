@@ -12,7 +12,7 @@ import { writeMemberCallsign, writeSession } from '../net/session';
 import { accountSection } from './account';
 import { schedule } from '../core/timing';
 import { VBAND_KEYMAP } from '../storage/schema';
-import { clear, downloadText, el, pickFile, radioGroup, slider } from './dom';
+import { clear, downloadText, el, failureText, pickFile, radioGroup, slider } from './dom';
 import { buttonLabel, buttonList, keyLabel, keyList } from './keylabels';
 import type { Ctx, View } from './context';
 
@@ -170,7 +170,7 @@ export function settingsView(ctx: Ctx): View {
         el('p', { class: 'hint', text:
           'An account is for two things: working other members on the band, and the final exam at '
           + 'the end of the course, which earns a certificate. Sign in or create one from the '
-          + '"On air" tab, and your account settings will appear here.' }),
+          + '“On air” tab, and your account settings will appear here.' }),
       ));
       return;
     }
@@ -280,7 +280,7 @@ export function settingsView(ctx: Ctx): View {
         ctx.toast(`Imported ${String(envelope.sessions.length)} sessions. Reloading…`, 'good');
         window.setTimeout(() => window.location.reload(), 900);
       } catch (error) {
-        ctx.toast(error instanceof Error ? error.message : 'Import failed.', 'bad');
+        ctx.toast(failureText(error, 'The import failed.'), 'bad');
       }
     })();
   });

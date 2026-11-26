@@ -230,7 +230,7 @@ export function qsoView(ctx: Ctx): View {
     replyInput.placeholder = busy
       ? 'Listening\u2026 wait for them to finish'
       : state?.stage === 'awaiting-cq'
-        ? 'Call CQ \u2014 or press "Send CQ" for the usual wording'
+        ? 'Call CQ \u2014 or press “Send CQ” for the usual wording'
         : 'Type what you would send, then press Enter';
   }
 

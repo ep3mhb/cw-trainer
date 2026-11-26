@@ -169,7 +169,7 @@ export class Hub {
     // RFD A55: the band is where an account can bother other people, so it
     // waits until the address is confirmed. Practice does not.
     if (!member.emailConfirmed) {
-      this.refuse(socket, 'not-authorised', 'confirm your email address first — use the link we mailed you');
+      this.refuse(socket, 'not-authorised', 'confirm your email address first — use the link that was emailed to you');
       return null;
     }
 

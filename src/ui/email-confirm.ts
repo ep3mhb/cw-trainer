@@ -13,7 +13,7 @@
  */
 
 import { api, type MemberInfo } from '../net/api';
-import { el } from './dom';
+import { el, failureText, sentence } from './dom';
 import type { Ctx } from './context';
 
 export const CONFIRM_HASH = '#confirm-email=';
@@ -35,7 +35,7 @@ export async function confirmFromLink(ctx: Ctx, token: string): Promise<void> {
       'good',
     );
   } catch (error) {
-    ctx.toast(error instanceof Error ? error.message : 'that confirmation link did not work', 'bad');
+    ctx.toast(failureText(error, 'That confirmation link did not work.'), 'bad');
   }
 }
 
@@ -48,17 +48,17 @@ export function emailNotice(ctx: Ctx, me: MemberInfo): HTMLElement | null {
     again.disabled = true;
     try {
       const r = await api.resendConfirmation();
-      said.textContent = ` ${r.message}.`;
+      said.textContent = ` ${sentence(r.message)}`;
       ctx.toast(`A new confirmation link is on its way to ${me.email}.`, 'good');
     } catch (error) {
-      said.textContent = ` ${error instanceof Error ? error.message : 'could not reach the server'}.`;
+      said.textContent = ` ${failureText(error, 'Could not reach the server.')}`;
       again.disabled = false;
     }
   })());
   // Shown straight after the registration form is sent, and until the address is confirmed.
   return el('div', { class: 'notice warn email-notice' },
     el('p', {},
-      'Please confirm your email address. We have sent a confirmation email to ',
+      'Confirm your email address: a confirmation email has been sent to ',
       el('b', { text: me.email }),
       ' from ', el('b', { text: 'RESONIK CW Trainer <noreply@mikroutik.com>' }),
       '. Open the link in it; the band opens to you once you have, and practice does not wait.'),
@@ -80,13 +80,13 @@ export function showRegisteredDialog(email: string, sent: boolean): void {
     el('h2', { id: 'reg-dialog-title', text: sent ? 'Check your email' : 'Your account is made' }),
     sent
       ? el('p', {},
-        'We have sent a confirmation email to ', el('b', { text: email }), ' from ',
+        'A confirmation email has been sent to ', el('b', { text: email }), ' from ',
         el('b', { text: 'RESONIK CW Trainer <noreply@mikroutik.com>' }), '.')
-      : el('p', { text: 'The confirmation email could not be sent just now. Use "Send the link again" on the On air tab in a few minutes.' }),
+      : el('p', { text: 'The confirmation email could not be sent just now. Use “Send the link again” on the On air tab in a few minutes.' }),
     sent ? el('p', { text: 'Open the link in it to confirm your address. The band opens to you once you have; practice does not wait.' }) : null,
     sent ? el('p', { class: 'notice warn', text:
       'Not in your inbox within a few minutes? Look in your spam or junk folder, and mark the email as '
-      + '"not spam" so that the next one arrives normally.' }) : null,
+      + '“not spam” so that the next one arrives normally.' }) : null,
     el('div', { class: 'row' }, ok));
   ok.addEventListener('click', () => dialog.close());
   dialog.addEventListener('close', () => dialog.remove());

@@ -109,9 +109,15 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
 
   const url = new URL(request.url);
-  const isPage = request.mode === 'navigate'
+  // The web edition of the manual (RFD A59) is pages of its own under
+  // /manual/, not the application. Treated as "the page", a chapter would
+  // be stored as ./index.html and served as the application offline. So
+  // they take the second path: cached under their own address on first
+  // read, like the PDFs, and readable offline after that.
+  const isManual = url.pathname.startsWith('/manual/');
+  const isPage = !isManual && (request.mode === 'navigate'
     || url.pathname.endsWith('/index.html')
-    || url.pathname === '/' || url.pathname.endsWith('/');
+    || url.pathname === '/' || url.pathname.endsWith('/'));
 
   if (isPage) {
     event.respondWith(

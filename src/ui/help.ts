@@ -29,22 +29,22 @@ const spoken = (pattern: string): string =>
 /** A worked example contact, written out the way it is actually sent. */
 const QSO_EXAMPLE = [
   'CQ CQ CQ DE A65XY A65XY K',
-  '      calling anyone at all. "DE" means "from".',
+  '      calling anyone at all. “DE” means “from”.',
   '',
   'A65XY DE G4ABC G4ABC K',
-  '      someone answers: your call first, then theirs, then "over".',
+  '      someone answers: your call first, then theirs, then “over”.',
   '',
   'G4ABC DE A65XY = GM ES TNX FER CALL = UR RST 579 579 =',
   'NAME HR MOHAMMAD MOHAMMAD = QTH DUBAI DUBAI = HW?',
   'G4ABC DE A65XY KN',
-  '      your turn: signal report, name, location. "=" is the BT separator,',
+  '      your turn: signal report, name, location. “=” is the BT separator,',
   '      and things are sent twice because conditions are never perfect.',
   '',
   '      ... the other station replies in the same shape ...',
   '',
   'G4ABC DE A65XY = TNX FER QSO = 73 ES CUL =',
   'G4ABC DE A65XY SK',
-  '      signing off. 73 is "best regards"; SK ends the contact for good.',
+  '      signing off. 73 is “best regards”; SK ends the contact for good.',
 ].join('\n');
 
 /**
@@ -171,14 +171,14 @@ export function helpView(ctx: Ctx): View {
         'Practice happens in this browser: no account, no server and no network traffic once the page has ' +
         'loaded \u2014 your progress is stored on this device. You can export all of it ' +
         'to a file at any time from the Settings tab, and delete all of it from the same place. The ' +
-        '"On air" tab talks to the server once you sign in, and so does the final exam at the ' +
+        '“On air” tab talks to the server once you sign in, and so does the final exam at the ' +
         'very end of the course, which the server sets and marks so that the certificate means something. ' +
         'Nothing else does.'),
       el('p', { class: 'hint' },
         el('span', { text: 'What is held, who else can see it and how long it is kept: ' }),
         el('a', { href: PRIVACY_URL, target: '_blank', rel: 'noopener', text: 'the privacy notice' }),
         el('span', { text: '. You can close your account, and withdraw a certificate, yourself at any '
-          + 'time \u2014 both are under "Your account" on the Settings tab.' })),
+          + 'time \u2014 both are under “Your account” on the Settings tab.' })),
       el('p', { class: 'hint' },
         el('span', { text: 'New here, or showing somebody else? The welcome page ends with a short guide to how to '
           + 'learn Morse code. ' }),
@@ -201,7 +201,15 @@ export function helpView(ctx: Ctx): View {
         '20 September 2026; Phase 2 (accounts and live contacts between members) since 21 September. ' +
         'What each version changed is in the repository\u2019s ROADMAP.'),
       el('p', { class: 'manual-links' },
-        el('b', { text: 'The user manual (PDF, about 3.5 MB), with screenshots of every tab: ' }),
+        el('b', { text: 'The user manual, with screenshots of every tab, to read online: ' }),
+        el('a', { href: './manual/en/', target: '_blank', rel: 'noopener', text: 'English' }),
+        ' \u00b7 ',
+        el('a', { href: './manual/fa/', target: '_blank', rel: 'noopener', lang: 'fa', text: '\u0641\u0627\u0631\u0633\u06cc' }),
+        el('span', { class: 'hint', text: ' (Persian) \u00b7 ' }),
+        el('a', { href: './manual/ar/', target: '_blank', rel: 'noopener', lang: 'ar', text: '\u0627\u0644\u0639\u0631\u0628\u064a\u0629' }),
+        el('span', { class: 'hint', text: ' (Arabic). One page per chapter; once read, a chapter opens without a connection too.' })),
+      el('p', { class: 'manual-links' },
+        el('b', { text: 'The same manual as an A4 PDF (about 3.5 MB), for printing: ' }),
         el('a', { href: './manual/CW-Trainer-User-Manual-EN.pdf', target: '_blank', rel: 'noopener', text: 'English' }),
         ' \u00b7 ',
         el('a', { href: './manual/CW-Trainer-User-Manual-FA.pdf', target: '_blank', rel: 'noopener', lang: 'fa', text: '\u0641\u0627\u0631\u0633\u06cc' }),
@@ -231,9 +239,9 @@ export function helpView(ctx: Ctx): View {
       'help-start',
       'Getting started in five minutes',
       el('ol', { class: 'steps' },
-        el('li', {}, el('b', { text: 'Click "Enable sound".' }),
+        el('li', {}, el('b', { text: 'Click “Enable sound”.' }),
           ' Every browser blocks audio until you interact with the page. This is that interaction.'),
-        el('li', {}, el('b', { text: 'Go to Receive and press "Start session".' }),
+        el('li', {}, el('b', { text: 'Go to Receive and press “Start session”.' }),
           ' You will hear only two characters, K and M, at a realistic speed with long gaps between them. ' +
           'That is deliberate — see below.'),
         el('li', {}, el('b', { text: 'Type what you heard, then press Enter.' }),
@@ -267,7 +275,7 @@ export function helpView(ctx: Ctx): View {
       el('p', { class: 'hint' },
         'Sent as one unbroken run, with no gap inside \u2014 that is what makes them punctuation rather than ' +
         'two letters side by side. Knowing which one to send, and when, is covered under ' +
-        '"Q codes, abbreviations and prosigns" below.'),
+        '“Q codes, abbreviations and prosigns” below.'),
       tileGrid(prosignTokens, (t) => t.replace(/[<>]/g, '')),
     ),
     section(
@@ -341,10 +349,10 @@ export function helpView(ctx: Ctx): View {
         'callsign, the date, the score and a serial number, and a QR square that opens a page on the ' +
         'server confirming it \u2014 that page shows the callsign, date, serial and score, and not ' +
         'your name. If you would rather it did not answer at all, withdraw the certificate under ' +
-        '"Your account" on the Settings tab; the printed sheet is yours either way.'),
+        '“Your account” on the Settings tab; the printed sheet is yours either way.'),
       el('p', {},
-        'The certificate is not a one-time offer. It is listed under "Your account" from then on, with a ' +
-        '"View and print" button beside it, so you can open it again and print another copy whenever you ' +
+        'The certificate is not a one-time offer. It is listed under “Your account” from then on, with a ' +
+        '“View and print” button beside it, so you can open it again and print another copy whenever you ' +
         'like \u2014 including one you have withdrawn from the public page. Withdrawing stops the QR square ' +
         'resolving for other people; it does not take your own copy away.'),
       el('p', { class: 'hint' },
@@ -357,9 +365,9 @@ export function helpView(ctx: Ctx): View {
       el('h3', { text: 'Practising something other than your lesson' }),
       el('p', {},
         'The course decides what you are ready for, but it does not have to decide what you practise. Under ' +
-        '"What to practise" on the Receive tab there are three choices. "My course lesson" is the normal one ' +
-        'and the only one that can unlock a character. "Any lesson" plays any lesson in the course, so you ' +
-        'can hear what is coming or go back over an earlier set that still catches you out. "My own set" ' +
+        '“What to practise” on the Receive tab there are three choices. “My course lesson” is the normal one ' +
+        'and the only one that can unlock a character. “Any lesson” plays any lesson in the course, so you ' +
+        'can hear what is coming or go back over an earlier set that still catches you out. “My own set” ' +
         'drills exactly the characters you type in \u2014 letters, digits, punctuation, or prosigns in angle ' +
         'brackets, separated however you like.'),
       el('p', {},
@@ -367,8 +375,8 @@ export function helpView(ctx: Ctx): View {
         'and they feed the confusion matrix, but they leave your course position alone. Nobody wants to ' +
         'unlock six characters by accident while poking at lesson 30.'),
       el('p', { class: 'hint' },
-        'If you already know Morse and the first lesson is wasting your time, set "Any lesson" to where you ' +
-        'actually are and press "Start my course here". That moves your course position, and the 90% rule ' +
+        'If you already know Morse and the first lesson is wasting your time, set “Any lesson” to where you ' +
+        'actually are and press “Start my course here”. That moves your course position, and the 90% rule ' +
         'takes over from there.'),
       el('h3', { text: 'Why the characters come in that order' }),
       el('p', { class: 'hint' },
@@ -495,7 +503,7 @@ export function helpView(ctx: Ctx): View {
         'online keyer uses. That is this app’s default too, so an adaptor already set up for VBand — ' +
         'including one going through a key-remapping utility — works here untouched.'),
       el('p', { class: 'hint' },
-        'If neither works, Settings → Key mapping → "Set dit" captures whatever you press next, keyboard ' +
+        'If neither works, Settings → Key mapping → “Set dit” captures whatever you press next, keyboard ' +
         'key or mouse button.'),
     ),
 
@@ -547,7 +555,7 @@ export function helpView(ctx: Ctx): View {
         'It pairs your elements with the target in order, so one extra or missing element shifts everything ' +
         'after it. When the counts differ it says so. Trust the five rows above it over this.'),
       el('p', { class: 'notice' },
-        'If "Match" reads 0%, the decoder did not read back the target text. Either you sent something else, ' +
+        'If “Match” reads 0%, the decoder did not read back the target text. Either you sent something else, ' +
         'which is fine — the timing figures are still valid — or the tolerance is too tight for your ' +
         'fist. Loosen the tolerance slider before concluding you cannot send.'),
     ),
@@ -566,8 +574,8 @@ export function helpView(ctx: Ctx): View {
         'than in a silent room, and it will repeat anything you miss.'),
       el('h3', { text: 'Answering, and calling' }),
       el('p', {},
-        'The QSO tab runs the contact either way round, and they are not the same exercise. Under "Who ' +
-        'calls", the default has the simulated operator call CQ and you answer it. The other way round, you ' +
+        'The QSO tab runs the contact either way round, and they are not the same exercise. Under “Who ' +
+        'calls”, the default has the simulated operator call CQ and you answer it. The other way round, you ' +
         'call CQ and a station you have never heard comes back to you.'),
       el('p', {},
         'Calling is the harder half and the one worth practising. When you answer a CQ you have already ' +
@@ -580,7 +588,7 @@ export function helpView(ctx: Ctx): View {
         'send AGN. Everyone does, including operators who have been doing this for forty years.'),
       el('h3', { text: 'Typing your reply, or keying it' }),
       el('p', {},
-        'Under "How you reply" you can send your side of the contact on your own key instead of typing it. ' +
+        'Under “How you reply” you can send your side of the contact on your own key instead of typing it. ' +
         'What you key is decoded as you send, and shown above the pad \u2014 so you can see what the other ' +
         'station is about to hear before it goes.'),
       el('p', {},
@@ -589,7 +597,7 @@ export function helpView(ctx: Ctx): View {
         'corrects your sending for you.'),
       el('p', {},
         'A transmission ends when you stop. Leave the key alone for a couple of seconds and it goes, the way ' +
-        'it does on the air \u2014 or press "Send it" if you would rather not wait. The pad is live only when ' +
+        'it does on the air \u2014 or press “Send it” if you would rather not wait. The pad is live only when ' +
         'it is your turn; while the other station is sending, your key is dead, so your own sidetone cannot ' +
         'play over the top of what you are trying to copy.'),
       el('p', { class: 'hint' },
@@ -645,13 +653,13 @@ export function helpView(ctx: Ctx): View {
       'help-band',
       'Working other members on the air',
       el('p', { class: 'notice' },
-        'This is Phase 2, now on the "On air" tab for member testing. It needs an ' +
+        'This is Phase 2, now on the “On air” tab for member testing. It needs an ' +
         'account (below) and a connection to the server; everything else in this application ' +
         'still works without either.'),
 
       el('h3', { text: 'The On air tab, in one minute' }),
       el('ol', { class: 'steps' },
-        el('li', { text: 'Sign in, or create an account. Press "Enable sound" if you have not already.' }),
+        el('li', { text: 'Sign in, or create an account. Press “Enable sound” if you have not already.' }),
         el('li', { text: 'The band scope is the band, 7 000 to 7 040 kHz, drawn as an SDR draws it: a spectrum ' +
           'along the top and a waterfall beneath, scrolling down. A station shows as a peak and a bright trace ' +
           'only while its key is down, so you see the dits and dahs go by \u2014 the display shows the code being ' +
@@ -659,25 +667,25 @@ export function helpView(ctx: Ctx): View {
           'station carries its callsign above the glass; amber means you can hear it from where you are, a ' +
           'green ring means it is calling CQ, the red line is your dial and the lighter strip either side of it ' +
           'is your passband. Stations on or near the same frequency share one label \u2014 the strongest two by ' +
-          'name and "+3" for the rest, as a pile-up \u2014 and the Heard list below names them all. ' +
+          'name and “+3” for the rest, as a pile-up \u2014 and the Heard list below names them all. ' +
           'Drag across the glass to tune, or press a station\u2019s marker to land on it.' }),
         el('li', { text: 'The tuning knob beside the readout is the VFO: drag round it and the dial follows, one ' +
           'full turn to the kilohertz, in 10 Hz steps; hold Shift for 100 Hz steps. The wheel and the arrow keys ' +
           'work on it too. For jumps, the buttons beside the readout step 10 Hz, 100 Hz and 1 kHz and the slider ' +
-          'sweeps the whole band. "\u25c2 Next" and "Next \u25b8" are a signal scan: they jump the dial down or up to ' +
+          'sweeps the whole band. “\u25c2 Next” and “Next \u25b8” are a signal scan: they jump the dial down or up to ' +
           'the nearest other station you could hear once tuned to it, landing exactly on its frequency \u2014 a ' +
           'station too weak for your receiver is skipped, one outside your passband still counts, and if there is ' +
           'nobody in that direction nothing happens. Hop with Next, then finish with the knob.' }),
-        el('li', { text: '"Heard" lists what is audible from where you are, loudest first, each with a signal ' +
-          'bar \u2014 a station too weak or too far off is simply not there, as on the air. "Zero-beat" puts ' +
-          'your dial exactly on someone. A caller off your dial is still named, with a "Tune to" button, ' +
+        el('li', { text: '“Heard” lists what is audible from where you are, loudest first, each with a signal ' +
+          'bar \u2014 a station too weak or too far off is simply not there, as on the air. “Zero-beat” puts ' +
+          'your dial exactly on someone. A caller off your dial is still named, with a “Tune to” button, ' +
           'because a CQ is meant to be found.' }),
-        el('li', { text: 'To call: "Find a clear spot", then "Call CQ here" \u2014 that arms your key and marks you ' +
+        el('li', { text: 'To call: “Find a clear spot”, then “Call CQ here” \u2014 that arms your key and marks you ' +
           'as calling. Send CQ on your key; everyone on the band hears it at the pitch their own dial gives it.' }),
-        el('li', { text: 'To answer: press "Answer" on a station in the Heard list. Your dial moves onto them, the ' +
-          'direct connection is set up (a few seconds; "connecting" then "connected" in the status row) and ' +
+        el('li', { text: 'To answer: press “Answer” on a station in the Heard list. Your dial moves onto them, the ' +
+          'direct connection is set up (a few seconds; “connecting” then “connected” in the status row) and ' +
           'your key is armed. Then work them as you would on the air.' }),
-        el('li', { text: '"End contact" closes it and it goes into both logs. "Leave the band" takes you off the ' +
+        el('li', { text: '“End contact” closes it and it goes into both logs. “Leave the band” takes you off the ' +
           'air; nobody hears you and you hear nobody until you come back.' }),
         el('li', { text: 'On a phone or tablet the key pad is your paddle: the left half is dit, the right half ' +
           'dah, and two thumbs squeeze exactly as two paddles do. In straight-key mode the whole pad is the key. ' +
@@ -685,15 +693,15 @@ export function helpView(ctx: Ctx): View {
       el('p', { class: 'hint' },
         'Contacts are over to over: a fifth of a second or more of buffering makes true break-in impossible, ' +
         'so the application holds your key while the other station is sending and for two and a half seconds ' +
-        'after their last element \u2014 the pad turns amber and says "Their over", and the lamp beside it ' +
+        'after their last element \u2014 the pad turns amber and says “Their over”, and the lamp beside it ' +
         'shows whose over it is. Keying during the hold makes no sound and sends nothing; that is not a ' +
-        'fault, it is the other station still sending. If the status row says "could not connect", that is ' +
+        'fault, it is the other station still sending. If the status row says “could not connect”, that is ' +
         'the network between you and the server, never your sending \u2014 and it says so.'),
       el('p', { class: 'hint' },
         'Phones drop the connection to the server when the screen locks or you switch apps. When you come back ' +
         'the application reconnects at once, puts you back on your frequency, and ends any contact you were ' +
-        'in \u2014 the other station has been told you left \u2014 so just call or answer again. If the "Band" ' +
-        'badge says "reconnecting", wait for "on the band" before keying. The badge also shows the round trip ' +
+        'in \u2014 the other station has been told you left \u2014 so just call or answer again. If the “Band” ' +
+        'badge says “reconnecting”, wait for “on the band” before keying. The badge also shows the round trip ' +
         'to the server in milliseconds; the application checks the connection every fifteen seconds and ' +
         'reconnects by itself if the server has gone quiet, so a station that has really gone disappears from ' +
         'everyone\u2019s band within about half a minute.'),
@@ -708,7 +716,7 @@ export function helpView(ctx: Ctx): View {
         'are tuned onto them, higher when your dial is low, lower when it is high. Getting a station to ' +
         'sound right is zero-beating, and it is the skill this interface exists to teach.'),
       el('p', {},
-        'The band-conditions engine from the QSO tab applies here as well: the "Band conditions" choice ' +
+        'The band-conditions engine from the QSO tab applies here as well: the “Band conditions” choice ' +
         'under the Heard list puts the same noise floor and static under every station you hear, through ' +
         'the same receiver filter, so a contact is worked in noise rather than in a silent room and narrowing ' +
         'the filter quietens the band exactly as it does on your drills, and the fading (QSB) of the preset ' +
@@ -745,7 +753,7 @@ export function helpView(ctx: Ctx): View {
         'You should never be practising against a fist that the connection wrecked in transit.'),
       el('p', {},
         'If the server itself cannot be reached \u2014 it is down, or you are offline \u2014 the '
-        + 'On air tab says so and offers a "Retry" button, rather than hanging on "Checking your session\u2026" '
+        + 'On air tab says so and offers a “Retry” button, rather than hanging on “Checking your session\u2026” '
         + 'or asking you to sign in again. You are still signed in; nothing is lost. Every other tab works '
         + 'without the server, so practice carries on regardless.'),
 
@@ -767,23 +775,23 @@ export function helpView(ctx: Ctx): View {
         'Live contacts need an account: a name, an email address and a password of at least ten characters, '
         + 'plus your callsign if you hold one. Your password is never stored, only a one-way hash of it, and '
         + 'a forgotten one is replaced through a link sent to your email that works once and for one hour. '
-        + 'You can change it yourself under "Your account" on the Settings tab, giving the current one; '
+        + 'You can change it yourself under “Your account” on the Settings tab, giving the current one; '
         + 'changing or resetting it signs out every other device you were signed in on.'),
       el('p', { class: 'hint' },
         'If the reset mail does not arrive within a few minutes, look in your spam or junk folder before asking '
         + 'for another: the server sends from noreply@mikroutik.com, an address you have never written '
         + 'to, and some providers file a first message from one there. Marking it as not spam keeps the next one '
         + 'in your inbox. The link works once and for one hour, so if an older one has expired, ask for a fresh '
-        + 'one from "Forgotten password" rather than following the old mail.'),
+        + 'one from “Forgotten password” rather than following the old mail.'),
       el('p', {},
         'When you register, the server mails you a link to confirm that the email address is yours. It comes '
         + 'from RESONIK CW Trainer <noreply@mikroutik.com>, and some providers file a first message from it as spam, '
         + 'so look there if it has not arrived. Open it '
         + 'within 48 hours; you do not need to be signed in. Confirming it also confirms the callsign you gave, '
         + 'and opens the band to you: an account whose address is not confirmed can practise everything else but '
-        + 'cannot go on the air, which keeps the band free of throwaway accounts: the On air tab shows "Not on the air '
-        + 'yet" in place of the band, with "I have confirmed \u2014 check again" for after you have opened the link. '
-        + 'Until you have confirmed, "Your account" on the Settings tab and the On air tab show a reminder with a "Send the link again" '
+        + 'cannot go on the air, which keeps the band free of throwaway accounts: the On air tab shows “Not on the air '
+        + 'yet” in place of the band, with “I have confirmed \u2014 check again” for after you have opened the link. '
+        + 'Until you have confirmed, “Your account” on the Settings tab and the On air tab show a reminder with a “Send the link again” '
         + 'button, which sends a fresh link and retires the old one (once a minute, five times a day). The '
         + 'administrator is told by mail when you register and when you confirm.'),
       el('p', { class: 'hint' },
@@ -794,12 +802,12 @@ export function helpView(ctx: Ctx): View {
       el('p', {},
         'A callsign you claim is confirmed before it counts as yours \u2014 by your confirming your address, '
         + 'and an administrator can withdraw the confirmation if the callsign turns out not to be yours. Until then you '
-        + 'can practise and go on the band, but your callsign is marked "unconfirmed" wherever it appears and '
+        + 'can practise and go on the band, but your callsign is marked “unconfirmed” wherever it appears and '
         + 'no contact with you is exportable \u2014 so nobody can appear in another member\u2019s log as an '
         + 'operator they are not. A training identifier needs no confirmation; the application issued it.'),
       el('p', {},
         'Your profile \u2014 QTH, grid square, rig, antenna, licence, preferred sidetone and target speed \u2014 '
-        + 'lives under "Your account" too. It is the one place these are kept: the sidetone you save there '
+        + 'lives under “Your account” too. It is the one place these are kept: the sidetone you save there '
         + 'becomes the sidetone this browser uses; the QSO tab\u2019s robot addresses you by your own '
         + 'callsign or training identifier once you have signed in, and by name \u2014 but only after you have '
         + 'sent your name to it, because it copies, it does not read your profile. On the band, whatever you '
@@ -810,7 +818,7 @@ export function helpView(ctx: Ctx): View {
         + 'frequency twice. Nothing about your account is shared with anyone else, and the '
         + 'only web page allowed to talk to the server is this one.'),
       el('p', {},
-        'Certificates you have earned are listed there too. Each has a "View and print" button, which '
+        'Certificates you have earned are listed there too. Each has a “View and print” button, which '
         + 'opens the sheet again exactly as it was issued, and a control for whether the QR square on the '
         + 'printed sheet still resolves. Withdraw it and the verification page answers that there is no '
         + 'such certificate \u2014 not that there used to be one. Put it back whenever you like. Either way '
@@ -857,21 +865,21 @@ export function helpView(ctx: Ctx): View {
         + 'The tab carries what used to sit at the foot of the On air tab: '
         + 'the four actions an administrator has and nothing more \u2014 confirm a callsign (or withdraw the '
         + 'confirmation), force a password reset, disable an account (and enable it again), and delete one; '
-        + 'a member muted from the band also gets an "Unmute" button there, so a 24-hour mute can be lifted early. '
+        + 'a member muted from the band also gets an “Unmute” button there, so a 24-hour mute can be lifted early. '
         + 'Members whose callsigns are waiting on you are listed first and marked. Delete is drawn in red, as the '
         + 'one action on the page that cannot be undone from it.'),
       el('p', {},
         'You do not have to keep the tab open to notice newcomers. The server mails the administrator when '
         + 'someone registers and again when they have confirmed their email address, with a link straight to '
         + 'this tab. Confirming the address confirms the callsign automatically, so there is normally nothing to '
-        + 'do; if a callsign is not its owner\u2019s, "Withdraw confirmation" undoes it. A member who has not yet '
-        + 'confirmed their address carries an "email not confirmed" badge here and cannot go on the band; '
-        + '"Send confirmation link" mails them a fresh link, explaining why it is asked. The '
+        + 'do; if a callsign is not its owner\u2019s, “Withdraw confirmation” undoes it. A member who has not yet '
+        + 'confirmed their address carries an “email not confirmed” badge here and cannot go on the band; '
+        + '“Send confirmation link” mails them a fresh link, explaining why it is asked. The '
         + 'notices go to the address on the administrator\u2019s own account unless the server sets ADMIN_EMAIL, '
-        + 'and AUTO_APPROVE=0 on the server puts the administrator\u2019s "Confirm callsign" back in the path.'),
+        + 'and AUTO_APPROVE=0 on the server puts the administrator\u2019s “Confirm callsign” back in the path.'),
       el('p', {},
         'The count at the top of the list counts members, not rows: a deleted account is not a member, so '
-        + 'three rows of which two are deleted read "1 member \u00B7 2 deleted". The deleted ones are folded '
+        + 'three rows of which two are deleted read “1 member \u00B7 2 deleted”. The deleted ones are folded '
         + 'away under that line and can be opened if you want to see them. They are kept rather than removed '
         + 'because the moderation log and other members\u2019 contacts point at them, and the record '
         + 'of who was disciplined should not quietly lose its subject.'),
@@ -886,11 +894,11 @@ export function helpView(ctx: Ctx): View {
 
       el('h3', { text: 'Your log, and exporting it' }),
       el('p', {},
-        'Both sides get the contact in their log automatically the moment it ends; "Your log" at the foot of ' +
+        'Both sides get the contact in their log automatically the moment it ends; “Your log” at the foot of ' +
         'the On air tab lists them, newest first. Each row has three boxes for the exchange: the RST you sent, ' +
         'the RST you received, and a note \u2014 type 5NN or 599, either is accepted, and it is saved when you ' +
-        'leave the box. These are your own account of the contact; the other station keeps theirs. "Export ' +
-        'ADIF" downloads a file every logging program imports \u2014 one record per contact with the other ' +
+        'leave the box. These are your own account of the contact; the other station keeps theirs. “Export ' +
+        'ADIF” downloads a file every logging program imports \u2014 one record per contact with the other ' +
         'station\u2019s callsign, date and time in UTC, frequency, band, mode, and the RST and note if you ' +
         'wrote them.'),
       el('p', { class: 'hint' },
@@ -902,7 +910,7 @@ export function helpView(ctx: Ctx): View {
       el('h3', { text: 'Who can see a contact' }),
       el('p', {},
         'An administrator can monitor an active contact and can mute or remove ' +
-        'a member, and you can report abuse from inside a contact without leaving it first: "Report" on a ' +
+        'a member, and you can report abuse from inside a contact without leaving it first: “Report” on a ' +
         'station\u2019s row asks what happened and sends it to the administrators together with a transcript ' +
         'of what that station sent, decoded by your browser as a machine would copy it. Nothing you sent is ' +
         'included, and no transcript is kept or shown at any other time \u2014 copying by ear is the point.'),
@@ -913,7 +921,7 @@ export function helpView(ctx: Ctx): View {
         el('span', { text: 'What is held on the server, who else can see it and how long it is kept is '
           + 'written out in the ' }),
         el('a', { href: PRIVACY_URL, target: '_blank', rel: 'noopener', text: 'privacy notice' }),
-        el('span', { text: '. You can close your account yourself at any time \u2014 "Your account" on the '
+        el('span', { text: '. You can close your account yourself at any time \u2014 “Your account” on the '
           + 'Settings tab.' })),
     ),
 
@@ -922,7 +930,7 @@ export function helpView(ctx: Ctx): View {
       'Q codes, abbreviations and prosigns',
       el('h3', { text: 'Q codes' }),
       el('p', { class: 'hint' },
-        'Three-letter codes that ask a question with a "?" after them and state a fact without one. They ' +
+        'Three-letter codes that ask a question with a “?” after them and state a fact without one. They ' +
         'exist because they are quick to send and mean the same thing in every language.'),
       el('div', { class: 'scroll-x' },
         el('table', {},
@@ -956,8 +964,8 @@ export function helpView(ctx: Ctx): View {
 
       el('h4', { text: 'Ending a transmission: K, KN, AR and SK' }),
       el('p', {},
-        'This is where nearly every beginner mistake happens, because all four mean roughly "I have stopped ' +
-        'sending" and they are not interchangeable.'),
+        'This is where nearly every beginner mistake happens, because all four mean roughly “I have stopped ' +
+        'sending” and they are not interchangeable.'),
       el('div', { class: 'scroll-x' },
         el('table', {},
           el('thead', {}, el('tr', {},
@@ -993,7 +1001,7 @@ export function helpView(ctx: Ctx): View {
       el('h4', { text: 'Mistakes worth avoiding' }),
       el('ul', { class: 'steps' }, ...PROSIGN_MISTAKES.map((m) => el('li', { text: m }))),
       el('p', { class: 'notice' },
-        'Practise them: choose the "Prosigns" lesson on the Receive tab to learn the sounds, and send them ' +
+        'Practise them: choose the “Prosigns” lesson on the Receive tab to learn the sounds, and send them ' +
         'yourself on the Send tab. They are short, there are only a handful, and getting them right is most ' +
         'of what makes a contact sound competent.'),
     ),
@@ -1014,13 +1022,13 @@ export function helpView(ctx: Ctx): View {
       'When something is not working',
       el('h3', { text: 'No sound at all' }),
       el('p', {},
-        'Click "Enable sound" in the header. Browsers block audio until you interact with the page, so this ' +
+        'Click “Enable sound” in the header. Browsers block audio until you interact with the page, so this ' +
         'is not optional and it is not a fault.'),
       el('h3', { text: 'The paddle does nothing' }),
       el('p', {},
         'Press [ on your keyboard. If that makes a tone, the app is fine and the problem lies between the ' +
         'paddle and the computer — check the adaptor is enabled in whatever remapping utility you use. If ' +
-        '[ does nothing either, check you pressed "Arm the key" and then clicked the keying area so that it ' +
+        '[ does nothing either, check you pressed “Arm the key” and then clicked the keying area so that it ' +
         'has keyboard focus.'),
       el('h3', { text: 'I changed headphones and the sound stopped' }),
       el('p', {},
@@ -1029,8 +1037,8 @@ export function helpView(ctx: Ctx): View {
         'this and rebuilds its audio automatically, which takes a second or two \u2014 you will see a message ' +
         'saying it reconnected.'),
       el('p', {},
-        'If it does not come back by itself, press "Restart audio" in the header. That is the same button as ' +
-        '"Enable sound"; it changes its name once audio has been started at least once.'),
+        'If it does not come back by itself, press “Restart audio” in the header. That is the same button as ' +
+        '“Enable sound”; it changes its name once audio has been started at least once.'),
       el('p', { class: 'notice warn' },
         'Bluetooth headphones are fine for receiving practice, but not for sending: they add 100\u2013200 ms ' +
         'between your key and the tone, which no software can remove. Check the latency panel on the Send ' +
@@ -1039,7 +1047,7 @@ export function helpView(ctx: Ctx): View {
       el('p', {},
         'Look at the latency panel on the Send tab; over about 60 ms it turns red. The usual cause is ' +
         'Bluetooth headphones or a Bluetooth speaker, which add 100–200 ms that no software can remove. ' +
-        'Switch to wired output or the built-in speakers, then click "Enable sound" again.'),
+        'Switch to wired output or the built-in speakers, then click “Enable sound” again.'),
       el('h3', { text: 'The latency figure is stuck high after using Bluetooth headphones' }),
       el('p', {},
         'Once Bluetooth headphones have been used, the browser keeps reporting their delay \u2014 over ' +
@@ -1050,9 +1058,9 @@ export function helpView(ctx: Ctx): View {
         'window \u2014 closing the last window leaves the application running. Measured on one Mac: 190 ms ' +
         'before a full quit, 8.9 ms after.'),
       el('p', {},
-        'Either way, press "Measure for real" first. It tells you whether the delay is genuinely there or ' +
+        'Either way, press “Measure for real” first. It tells you whether the delay is genuinely there or ' +
         'the browser is simply reporting a stale number, and those two need very different responses.'),
-      el('h3', { text: '"Measure for real" says only some of the clicks were heard' }),
+      el('h3', { text: '“Measure for real” says only some of the clicks were heard' }),
       el('p', {},
         'The measurement plays seven short clicks and times each one through your microphone. If it ' +
         'reports that only one or two were heard, the microphone is not picking them out of the room ' +
@@ -1104,7 +1112,7 @@ export function helpView(ctx: Ctx): View {
         'as a click, and on the same machine at a different volume it reported nothing recorded after ' +
         'the click was played. A run with no room measured behind it is now marked unusable and takes ' +
         'no part in any conclusion, rather than being read as a click that was heard.'),
-      el('h3', { text: '"Measure for real" says the input is overloading' }),
+      el('h3', { text: '“Measure for real” says the input is overloading' }),
       el('p', {},
         'Recorded sound runs from minus one to plus one. Anything beyond that is the input being driven ' +
         'past what it can represent, and the recording is clipped — the tops of the waveform are ' +
@@ -1138,14 +1146,14 @@ export function helpView(ctx: Ctx): View {
         'the app from its address once while connected, and it will work without a connection after that \u2014 ' +
         'on a train, in the car park, at a shack with no wifi.'),
       el('p', { class: 'hint' },
-        'If it still will not, something is clearing your browsing data on quit. Safari\u2019s "Prevent ' +
-        'cross-site tracking" does not do this, but privacy extensions and "clear on exit" settings do, and ' +
+        'If it still will not, something is clearing your browsing data on quit. Safari\u2019s “Prevent ' +
+        'cross-site tracking” does not do this, but privacy extensions and “clear on exit” settings do, and ' +
         'they take your practice history with them.'),
       el('h3', { text: 'Keeping it on your phone or dock' }),
       el('p', {},
         'It installs like an app and then opens without the browser furniture around it. On an iPhone or ' +
-        'iPad: the Share button, then "Add to Home Screen". On Android, or desktop Chrome and Edge: an ' +
-        'install icon appears in the address bar, or look under the browser menu for "Install".'),
+        'iPad: the Share button, then “Add to Home Screen”. On Android, or desktop Chrome and Edge: an ' +
+        'install icon appears in the address bar, or look under the browser menu for “Install”.'),
       el('p', { class: 'hint' },
         'Installed or not, it is the same application and the same stored progress. Installing only changes ' +
         'how you reach it \u2014 and makes it rather harder to lose.'),

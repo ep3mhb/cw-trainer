@@ -2,7 +2,7 @@
 import { HANDOVER_SIGNALS, PROSIGN_NOTES, Q_CODES } from '../../src/data/reference.ts';
 import { KOCH_ORDER, MORSE, PROSIGNS } from '../../src/core/morse.ts';
 
-export const VERSION = '0.14.0';
+export const VERSION = '0.15.5';
 const letters = Object.fromEntries(Object.entries(MORSE).filter(([c]) => /^[A-Z]$/.test(c)));
 const digits = Object.fromEntries(Object.entries(MORSE).filter(([c]) => /^[0-9]$/.test(c)));
 const punct = Object.fromEntries(Object.entries(MORSE).filter(([c]) => !/^[A-Z0-9]$/.test(c)));
@@ -892,7 +892,7 @@ export default {
         {
           title: 'النطاق',
           blocks: [
-            { t: 'h4', text: '«Can’t reach the server»' },
+            { t: 'h4', text: '«Cannot reach the server»' },
             'يقول تبويب On air هذا، ومعه زرّ **Retry**، حين لا يجيب الخادم البتّة — فهو متوقّف، أو أنت غير متصل. وأنت ما زلت مسجَّل الدخول ولم يضع شيء؛ اضغط **Retry** حين تظنّه عاد. وكل تبويب آخر يعمل بلا خادم، فالتمرين يمضي على كل حال.',
             { t: 'h4', text: 'لا أسمع المحطة الأخرى' },
             'تحقّق من ثلاثة أمور بالترتيب. أنداؤها كهرماني على المرقاب — فإن كان رماديًّا فهي خارج مدى جهازك: اضغط Zero-beat أو Tune to. وهل أنت على النطاق — فمصباح Band يجب أن يقرأ «on the band». وهل كُتمت المحطة الأخرى أو غادرت — فقائمة Heard لا تُظهر محطة ليست هناك.',

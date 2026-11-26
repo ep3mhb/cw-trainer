@@ -402,11 +402,11 @@ export class Api {
     // source cannot use up everyone's share.
     if (ip && !this.limits.allows(`reg-ip:${ip}`, LIMITS.registerPerIp.limit, LIMITS.registerPerIp.windowMs)) {
       this.log(`registration refused: too many from ${ip}`);
-      return bad(429, 'too many registrations from your connection; please try again in an hour');
+      return bad(429, 'too many registrations from your connection; try again in an hour');
     }
     if (!this.take('reg:all', LIMITS.registerGlobal)) {
       this.log('registration refused: hourly ceiling reached');
-      return bad(429, 'registration is busy just now; please try again in an hour');
+      return bad(429, 'registration is busy just now; try again in an hour');
     }
     if (ip) this.take(`reg-ip:${ip}`, LIMITS.registerPerIp);
 
@@ -605,13 +605,13 @@ export class Api {
     if (m.emailConfirmed) return bad(400, 'your email address is already confirmed');
     const last = this.lastConfirmationSent.get(m.id);
     if (last !== undefined && this.now() - last < RESEND_GAP_MS) {
-      return bad(429, 'a link was sent less than a minute ago; please check your inbox and spam folder');
+      return bad(429, 'a link was sent less than a minute ago; look in your inbox and your spam folder');
     }
     if (!this.take(`resend:${String(m.id)}`, LIMITS.resendPerMember)) {
-      return bad(429, 'that is enough links for one day; please check your spam folder, or try again tomorrow');
+      return bad(429, 'that is enough links for one day; look in your spam folder, or try again tomorrow');
     }
     if (!(await this.sendConfirmation(m))) {
-      return bad(503, 'the mail could not be sent right now; please try again later');
+      return bad(503, 'the email could not be sent just now; try again later');
     }
     return ok({ message: `a new link is on its way to ${m.email}` });
   }
@@ -626,7 +626,7 @@ export class Api {
     if ((ip && !this.limits.allows(ipKey, LIMITS.loginFailPerIp.limit, LIMITS.loginFailPerIp.windowMs))
       || !this.limits.allows(emailKey, LIMITS.loginFailPerEmail.limit, LIMITS.loginFailPerEmail.windowMs)) {
       this.log(`sign-in refused: too many failures (ip ${ip || '?'})`);
-      return bad(429, 'too many failed sign-ins; please wait fifteen minutes, or reset your password');
+      return bad(429, 'too many failed sign-ins; wait fifteen minutes, or reset your password');
     }
     const member = await this.store.memberByEmail(email);
     // Same answer whether the address is unknown or the password wrong, so
@@ -1121,7 +1121,7 @@ licence, and it is not an examination for one.</p>`);
       try {
         await this.mail(
           member.email,
-          'CW Trainer: reset your password',
+          `${APP_NAME}: reset your password`,
           `Hello ${member.name},\n\nSomeone — probably you — asked to reset the password for ${member.callsign}.\n` +
           `Open this link within an hour to choose a new one:\n\n${link}\n\n` +
           'If you did not ask for this, ignore this mail; nothing changes.\n',
@@ -1131,7 +1131,7 @@ licence, and it is not an examination for one.</p>`);
         // told the member nothing and the journal everything, which is the
         // wrong way round for the one who can act on it.
         this.log(`reset mail to ${member.email} failed: ${String(error instanceof Error ? error.message : error)}`);
-        return bad(503, 'the reset mail could not be sent right now; please contact the administrator');
+        return bad(503, 'the reset email could not be sent just now; contact the administrator');
       }
     }
     return ok({ message: 'if that address has an account, a reset link is on its way' });
@@ -1245,7 +1245,7 @@ licence, and it is not an examination for one.</p>`);
         if (target.removed) return bad(400, 'that account is disabled');
         if (target.emailConfirmed) return bad(400, 'that address is already confirmed');
         if (!(await this.sendConfirmation(target, true))) {
-          return bad(503, 'the mail could not be sent right now; try again in a while');
+          return bad(503, 'the email could not be sent just now; try again in a while');
         }
         break;
       case 'unmute':
@@ -1266,7 +1266,7 @@ licence, and it is not an examination for one.</p>`);
         try {
           await this.mail(
             target.email,
-            'CW Trainer: an administrator has reset your password',
+            `${APP_NAME}: an administrator has reset your password`,
             `Hello ${target.name},\n\nAn administrator (${admin.callsign}) has reset the password for ${target.callsign}. ` +
             `You have been signed out everywhere. Open this link within an hour to choose a new one:\n\n${link}\n\n` +
             'If this is unexpected, please contact the administrator.\n',
@@ -1274,7 +1274,7 @@ licence, and it is not an examination for one.</p>`);
         } catch (error) {
           this.log(`forced-reset mail to ${target.email} failed: ${String(error instanceof Error ? error.message : error)}`);
           await this.store.logModeration(admin.id, target.id, 'reset (mail failed)', reason);
-          return bad(503, 'the member was signed out, but the reset mail could not be sent; try again in a while');
+          return bad(503, 'the member was signed out, but the reset email could not be sent; try again in a while');
         }
         break;
       }

@@ -131,7 +131,7 @@ export function receiveView(ctx: Ctx): View {
   const sent = el('div', { class: 'readout', 'aria-live': 'off' });
   const showSentPlaceholder = (): void => {
     clear(sent);
-    sent.append(el('span', { class: 'pending', text: 'Press "Start session" and copy what you hear.' }));
+    sent.append(el('span', { class: 'pending', text: 'Press “Start session” and copy what you hear.' }));
   };
   const answerInput = el('input', {
     type: 'text',
@@ -159,7 +159,7 @@ export function receiveView(ctx: Ctx): View {
     autocomplete: 'off',
     autocapitalize: 'characters',
     spellcheck: 'false',
-    placeholder: 'e.g. K M R S, or CQ DE 73',
+    placeholder: 'for example K M R S, or CQ DE 73',
     'aria-label': 'Your own character set',
     value: ctx.settings.practice.custom,
   });
@@ -267,7 +267,7 @@ export function receiveView(ctx: Ctx): View {
       courseLine.append(
         next === null
           ? 'The course is complete.'
-          : `Reach 90% over a session to be offered the exam for "${next}".`,
+          : `Reach 90% over a session to be offered the exam for “${next}”.`,
       );
     } else {
       courseLine.append(
@@ -510,7 +510,7 @@ export function receiveView(ctx: Ctx): View {
       clear(feedback);
       feedback.hidden = false;
       feedback.append(el('div', { class: 'hint', text:
-        `Sent up. ${String(finalExam.typed.length)} of ${String(finalExam.groups.length * 5)} characters \u2014 `
+        `Sent to the server. ${String(finalExam.typed.length)} of ${String(finalExam.groups.length * 5)} characters \u2014 `
         + 'the server marks this one, so there is nothing to show yet.' }));
       return;
     }
@@ -684,7 +684,7 @@ export function receiveView(ctx: Ctx): View {
     const final = isFinalCharacter();
     const signedIn = ctx.member !== null;
     const take = el('button', { class: 'btn primary', text:
-      final ? `Take the final exam for "${next}"` : `Take the exam for "${next}"` });
+      final ? `Take the final exam for “${next}”` : `Take the exam for “${next}”` });
     const stay = el('button', { class: 'btn', text: 'Stay with these' });
     const deck = buildExam(ctx.progress);
     take.addEventListener('click', () => {
@@ -702,7 +702,7 @@ export function receiveView(ctx: Ctx): View {
     summary.append(
       el('div', { class: 'offer' },
         el('p', {}, el('b', { text: `${(accuracy * 100).toFixed(1)}% over ${String(over)} characters.` }),
-          ' Ready to add ', el('b', { text: `"${next}"` }), '?'),
+          ' Ready to add ', el('b', { text: `“${next}”` }), '?'),
         el('p', { class: 'hint', text:
           `The exam sends each of your ${String(chosenSet().characters.length)} characters four times \u2014 `
           + `${String(deck.length)} in all \u2014 and every one of them has to stand on its own. `
@@ -801,7 +801,7 @@ export function receiveView(ctx: Ctx): View {
           el('p', { class: 'hint', text:
             'The square on it scans to the server\u2019s own copy, so anyone you show it to can check it. '
             + 'That also means anyone holding the code can see your callsign, the date and the speed \u2014 '
-            + 'nothing else. You can withdraw it later from "Your account".' }),
+            + 'nothing else. You can withdraw it later from “Your account”.' }),
         );
       }
     } catch (error) {
@@ -852,7 +852,7 @@ export function receiveView(ctx: Ctx): View {
       ctx.refreshStatus();
       summary.append(el('p', { class: 'notice good', text:
         `Passed \u2014 ${accuracyText}, and every character stood on its own. `
-        + `"${added ?? ''}" joins the set from your next session.` }));
+        + `“${added ?? ''}” joins the set from your next session.` }));
       return;
     }
 
@@ -953,7 +953,7 @@ export function receiveView(ctx: Ctx): View {
       summary.append(
         el('p', { class: 'notice', text:
           `${accuracyText} on ${chosen.label.toLowerCase()}. This was practice, so your course position is ` +
-          'unchanged. Switch to "My course lesson" for a session that counts.' }),
+          'unchanged. Switch to “My course lesson” for a session that counts.' }),
       );
       renderProgress();
       return;

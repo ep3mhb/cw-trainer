@@ -23,7 +23,7 @@ import { writeSession } from '../net/session';
 import { pushTraining, setKeepRecords } from '../net/training';
 import { describeIdentifier } from '../core/callsign';
 import { certificate, factsFromSheet, longDate } from './certificate';
-import { clear, el } from './dom';
+import { clear, el, failureText } from './dom';
 import { emailNotice } from './email-confirm';
 import { PRIVACY_URL, type Ctx } from './context';
 
@@ -49,7 +49,7 @@ export function accountSection(ctx: Ctx, me: MemberInfo, hooks: AccountHooks): H
   const [gridF, gridI] = profileField('Grid square', 'grid', { type: 'text', placeholder: 'LL75', maxlength: 8 });
   const [rigF, rigI] = profileField('Rig', 'rig', { type: 'text', maxlength: 60 });
   const [antF, antI] = profileField('Antenna', 'antenna', { type: 'text', maxlength: 60 });
-  const [licF, licI] = profileField('Licence', 'licence', { type: 'text', placeholder: 'class, or "studying"', maxlength: 40 });
+  const [licF, licI] = profileField('Licence', 'licence', { type: 'text', placeholder: 'class, or “studying”', maxlength: 40 });
   const [sideF, sideI] = profileField('Preferred sidetone (Hz)', 'sidetoneHz', { type: 'number', min: 300, max: 1200, step: 10 });
   const [wpmF, wpmI] = profileField('Target speed (WPM)', 'targetWpm', { type: 'number', min: 5, max: 60, step: 1 });
   if (sideI.value === '') sideI.value = String(ctx.settings.audio.pitchHz);
@@ -82,7 +82,7 @@ export function accountSection(ctx: Ctx, me: MemberInfo, hooks: AccountHooks): H
       hooks.onMemberChanged(me);
       profileNote.textContent = 'Saved.';
     } catch (error) {
-      profileNote.textContent = error instanceof Error ? error.message : 'could not save';
+      profileNote.textContent = failureText(error, 'Could not save.');
     } finally {
       saveProfile.disabled = false;
     }
@@ -99,9 +99,9 @@ export function accountSection(ctx: Ctx, me: MemberInfo, hooks: AccountHooks): H
       writeSession(r.token);
       curPw.value = '';
       newPw.value = '';
-      pwNote.textContent = 'Changed. Every other device has been signed out.';
+      pwNote.textContent = 'Password changed. Every other device has been signed out.';
     } catch (error) {
-      pwNote.textContent = error instanceof Error ? error.message : 'could not change it';
+      pwNote.textContent = failureText(error, 'Could not change it.');
     } finally {
       changePw.disabled = false;
     }
@@ -137,7 +137,7 @@ export function accountSection(ctx: Ctx, me: MemberInfo, hooks: AccountHooks): H
       // screen; this panel owns none of them and says so by asking.
       hooks.onSignedOut();
     } catch (error) {
-      delNote.textContent = error instanceof Error ? error.message : 'could not close the account';
+      delNote.textContent = failureText(error, 'Could not close the account.');
       delBtn.disabled = false;
     }
   })());
@@ -187,7 +187,7 @@ export function accountSection(ctx: Ctx, me: MemberInfo, hooks: AccountHooks): H
             ? 'The QR square resolves.'
             : 'The QR square now answers \u201cnot found\u201d. Your printed copy is unaffected.';
         } catch (error) {
-          note.textContent = error instanceof Error ? error.message : 'could not change it';
+          note.textContent = failureText(error, 'Could not change it.');
         } finally {
           toggle.disabled = false;
         }
@@ -249,7 +249,7 @@ export function accountSection(ctx: Ctx, me: MemberInfo, hooks: AccountHooks): H
         ctx.toast(keeping ? 'Your records will be kept on the server.' : 'Deleted from the server.', 'good');
         if (keeping) void pushTraining(ctx.store, me);
       } catch (error) {
-        keepNote.textContent = error instanceof Error ? error.message : 'could not reach the server';
+        keepNote.textContent = failureText(error, 'Could not reach the server.');
       } finally {
         keepBtn.disabled = false;
       }

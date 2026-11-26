@@ -2,7 +2,7 @@
 import { HANDOVER_SIGNALS, PROSIGN_NOTES, Q_CODES } from '../../src/data/reference.ts';
 import { KOCH_ORDER, MORSE, PROSIGNS } from '../../src/core/morse.ts';
 
-export const VERSION = '0.14.0';
+export const VERSION = '0.15.5';
 const letters = Object.fromEntries(Object.entries(MORSE).filter(([c]) => /^[A-Z]$/.test(c)));
 const digits = Object.fromEntries(Object.entries(MORSE).filter(([c]) => /^[0-9]$/.test(c)));
 const punct = Object.fromEntries(Object.entries(MORSE).filter(([c]) => !/^[A-Z0-9]$/.test(c)));
@@ -892,7 +892,7 @@ export default {
         {
           title: 'باند',
           blocks: [
-            { t: 'h4', text: '«Can’t reach the server»' },
+            { t: 'h4', text: '«Cannot reach the server»' },
             'زبانهٔ On air این را با دکمهٔ **Retry** می‌گوید، وقتی سرور اصلاً جواب نمی‌دهد — خوابیده است، یا شما آفلاینید. شما همچنان واردید و چیزی از دست نرفته؛ هر وقت فکر کردید برگشته **Retry** را بزنید. همهٔ زبانه‌های دیگر بی سرور کار می‌کنند، پس تمرین به‌هر‌حال ادامه دارد.',
             { t: 'h4', text: 'ایستگاه مقابل را نمی‌شنوم' },
             'سه چیز را به ترتیب ببینید. نشان تماسش روی اسکوپ کهربایی است؟ — اگر خاکستری است، بیرون دسترس گیرندهٔ شماست: Zero-beat یا Tune to را بزنید. روی باندید؟ — چراغ Band باید «on the band» باشد. ایستگاه مقابل بی‌صدا شده یا رفته؟ — فهرست Heard ایستگاهی را که آنجا نیست نشان نمی‌دهد.',

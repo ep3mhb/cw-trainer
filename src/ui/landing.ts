@@ -199,15 +199,23 @@ export function landingView(actions: LandingActions): View {
   );
 
   // ---- the manuals ----
-  const manual = (href: string, name: string, pages: number, lang?: string): HTMLElement =>
+  /*
+   * 0.15.5 (RFD A59): each card opens the web edition of the manual, one
+   * page per chapter; the A4 PDFs stay one line below for printing.
+   */
+  const manual = (href: string, name: string, lang?: string): HTMLElement =>
     el('a', { class: 'landing-manual', href, ...(lang !== undefined ? { lang } : {}) },
       el('span', { class: 'name', text: name }),
-      el('span', { class: 'meta', text: `${String(pages)} pages · PDF` }));
+      el('span', { class: 'meta', text: 'Read online' }));
   const manuals = el('div', { class: 'landing-manuals' },
-    manual('./manual/CW-Trainer-User-Manual-EN.pdf', 'English', 58),
-    manual('./manual/CW-Trainer-User-Manual-FA.pdf', 'فارسی', 52, 'fa'),
-    manual('./manual/CW-Trainer-User-Manual-AR.pdf', 'العربية', 51, 'ar'),
+    manual('./manual/en/', 'English'),
+    manual('./manual/fa/', 'فارسی', 'fa'),
+    manual('./manual/ar/', 'العربية', 'ar'),
   );
+  const pdfs = el('p', { class: 'landing-pdfs' }, 'Also as A4 PDFs, for printing: ',
+    el('a', { href: './manual/CW-Trainer-User-Manual-EN.pdf', text: 'English' }), ' · ',
+    el('a', { href: './manual/CW-Trainer-User-Manual-FA.pdf', lang: 'fa', text: 'فارسی' }), ' · ',
+    el('a', { href: './manual/CW-Trainer-User-Manual-AR.pdf', lang: 'ar', text: 'العربية' }), '.');
 
   // ---- the videos (0.14.1) ----
   /*
@@ -253,6 +261,7 @@ export function landingView(actions: LandingActions): View {
     brand, hero, course, actionRow, doors,
     el('p', { class: 'landing-cap', text: 'The beginner’s guide, with a screenshot of every tab' }),
     manuals,
+    pdfs,
     el('p', { class: 'landing-cap', text: 'See it at work first: the videos' }),
     videos,
     learn,

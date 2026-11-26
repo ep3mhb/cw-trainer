@@ -35,7 +35,7 @@ import { Contact } from '../net/peer';
 import { readSession, writeMemberCallsign, writeSession } from '../net/session';
 import { BandSocket, type SocketState } from '../net/socket';
 import { adifExport, adifFileName } from '../core/adif';
-import { badge, clear, downloadText, el, select } from './dom';
+import { badge, clear, downloadText, el, failureText, select, sentence } from './dom';
 import { keyInput } from './keyinput';
 import { tuningKnob } from './knob';
 import { KeyTrace, spectrumRow, waterfallColour } from '../core/spectrum';
@@ -99,7 +99,7 @@ export function bandView(ctx: Ctx): View {
     });
     return el('section', { class: 'panel' },
       el('h2', { text: 'On the air' }),
-      el('p', { class: 'notice bad', text: 'Can’t reach the server.' }),
+      el('p', { class: 'notice bad', text: 'Cannot reach the server.' }),
       el('p', { class: 'hint' },
         'You are still signed in on this device; nothing has been lost. The server may be down or your '
         + 'connection may be off. Everything on the other tabs works without it.'),
@@ -157,7 +157,7 @@ export function bandView(ctx: Ctx): View {
         try {
           await work();
         } catch (error) {
-          say(error instanceof Error ? error.message : failure, 'bad');
+          say(failureText(error, failure), 'bad');
         } finally {
           busy(false);
         }
@@ -170,11 +170,11 @@ export function bandView(ctx: Ctx): View {
       writeMemberCallsign(r.member.callsign, r.member.name);
       member = r.member;
       render();
-    }, 'sign-in failed'));
+    }, 'Sign-in failed.'));
 
     forgot.addEventListener('click', () => {
       if (!email.value.trim()) {
-        say('type your email address first, then press this again', 'bad');
+        say('Type your email address first, then press this again.', 'bad');
         return;
       }
       attempt(async () => {
@@ -198,8 +198,8 @@ export function bandView(ctx: Ctx): View {
       // RFD A55: the server has mailed a confirmation link, or says it could not.
       const mail = r.confirmationSent === undefined ? ''
         : r.confirmationSent
-          ? ` We have emailed a confirmation link to ${r.member.email} from noreply@mikroutik.com — check your spam folder if it is not in your inbox.`
-          : ' The confirmation mail could not be sent just now; use "Send the link again" below.';
+          ? ` A confirmation link is on its way to ${r.member.email} from noreply@mikroutik.com. If it is not in your inbox, look in your spam folder.`
+          : ' The confirmation email could not be sent just now. Use “Send the link again” below.';
       ctx.toast((r.member.training
         ? `Welcome. Your training identifier is ${r.member.callsign}.`
         : r.member.verified
@@ -242,8 +242,8 @@ export function bandView(ctx: Ctx): View {
       message,
       el('h3', { text: 'New here?' }),
       el('p', { class: 'hint' },
-        'We email you a link from noreply@mikroutik.com to confirm your address (check your spam folder if it does '
-        + 'not arrive); the band opens to you once you have. Give your callsign '
+        'A link from noreply@mikroutik.com is emailed to you to confirm your address (look in your spam folder if it '
+        + 'does not arrive); the band opens to you once you have. Give your callsign '
         + 'if you hold one — it is confirmed together with your address, and an administrator can withdraw it if it '
         + 'turns out not to be yours. If you are not licensed, leave it blank and you will be issued a '
         + 'training identifier: it begins A0, a series no real station can ever hold, and is labelled as training '
@@ -258,7 +258,7 @@ export function bandView(ctx: Ctx): View {
         'Optional, and off unless you tick it. With it on, a summary of each practice session is kept on the '
         + 'server so you can see your progress from any computer or phone and carry on where you left off. '
         + 'Your keystrokes are never sent — only how many characters you attempted and how many you got right. '
-        + 'Nobody else can see it, not even an administrator. You can turn it off later under "Your account" on the Settings tab, and '
+        + 'Nobody else can see it, not even an administrator. You can turn it off later under “Your account” on the Settings tab, and '
         + 'turning it off deletes everything already stored.'),
       el('div', { class: 'register-trap', style: 'position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden' }, rTrap),
       el('div', { class: 'row' }, register),
@@ -925,7 +925,7 @@ export function bandView(ctx: Ctx): View {
           if (m.code === 'band-full') ctx.toast('Someone is close to that frequency. Tune a little away before calling CQ.', 'warn');
           else if (m.code === 'muted') ctx.toast('You are muted and cannot transmit at the moment.', 'bad');
           else if (m.code === 'rate-limited') ctx.toast('Slow down — the server is dropping messages.', 'warn');
-          else if (m.code !== 'not-authorised') ctx.toast(`Server: ${m.detail || m.code}`, 'warn');
+          else if (m.code !== 'not-authorised') ctx.toast(`The server says: ${sentence(m.detail || m.code)}`, 'warn');
           break;
         default:
           break;
@@ -1141,7 +1141,7 @@ export function bandView(ctx: Ctx): View {
             status.textContent = 'saved';
             status.classList.remove('bad');
           } catch (error) {
-            status.textContent = error instanceof Error ? error.message : 'not saved';
+            status.textContent = failureText(error, 'Not saved.');
             status.classList.add('bad');
           }
         };

@@ -23,6 +23,25 @@ export function el<K extends keyof HTMLElementTagNameMap>(
   return node;
 }
 
+/**
+ * One voice (RFD A59): every hint, notice and toast reads as a whole sentence,
+ * with a capital letter and a full stop, however the words arrived. The
+ * server writes its messages as lowercase fragments so that they can be
+ * embedded ("The band refused the connection: …"); shown on their own, they
+ * pass through here.
+ */
+export function sentence(text: string): string {
+  const t = text.trim();
+  if (t === '') return t;
+  const capital = t.charAt(0).toUpperCase() + t.slice(1);
+  return /[.!?…:]$/.test(capital) ? capital : `${capital}.`;
+}
+
+/** What went wrong, as a sentence: the error's own message, or the fallback when it has none. */
+export function failureText(error: unknown, fallback: string): string {
+  return sentence(error instanceof Error && error.message.trim() !== '' ? error.message : fallback);
+}
+
 export function clear(node: Element): void {
   while (node.firstChild !== null) node.removeChild(node.firstChild);
 }

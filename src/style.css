@@ -1372,6 +1372,9 @@ body.landing-open #panel { margin-top: 0; }
   text-transform: uppercase; color: var(--muted); white-space: nowrap;
 }
 
+.landing-pdfs { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+.landing-pdfs a { color: var(--accent); }
+
 /* ---- how to learn, in plain words (0.13.4) ---- */
 .landing-learn { margin: 22px 0 0; }
 .landing-learn h2 { margin: 0 0 8px; font-size: 16px; font-weight: 600; color: var(--text); }

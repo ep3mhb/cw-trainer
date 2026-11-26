@@ -14,7 +14,7 @@ import type { Ctx, View } from './ui/context';
 import { api, type MemberInfo } from './net/api';
 import { readSession } from './net/session';
 import { certificateLookup } from './ui/certificate';
-import { badge, clear, el } from './ui/dom';
+import { badge, clear, el, failureText } from './ui/dom';
 import { adminView } from './ui/admin';
 import { confirmFromLink, confirmTokenInHash } from './ui/email-confirm';
 import { bandView } from './ui/band';
@@ -58,7 +58,7 @@ async function boot(): Promise<void> {
     clear(root);
     root.append(
       el('div', { class: 'shell' },
-        el('p', { class: 'notice bad', text: error instanceof Error ? error.message : 'Could not open local storage.' }),
+        el('p', { class: 'notice bad', text: failureText(error, 'Could not open local storage.') }),
         el('p', { class: 'hint', text: 'Private browsing windows sometimes block IndexedDB. Try a normal window.' })),
     );
     return;
@@ -100,7 +100,7 @@ async function boot(): Promise<void> {
         renderStatus();
         return audio.isRunning;
       } catch (error) {
-        ctx.toast(error instanceof Error ? error.message : 'Could not start audio.', 'bad');
+        ctx.toast(failureText(error, 'Could not start audio.'), 'bad');
         return false;
       }
     },
@@ -195,12 +195,12 @@ async function boot(): Promise<void> {
       ctx.toast(
         audio.isRunning
           ? `Audio reconnected after ${reason}.`
-          : `Audio stopped after ${reason}. Press "Restart audio".`,
+          : `Audio stopped after ${reason}. Press “Restart audio”.`,
         audio.isRunning ? 'good' : 'bad',
       );
     } catch {
       renderStatus();
-      ctx.toast('Audio could not be restarted. Check your output device, then press "Restart audio".', 'bad');
+      ctx.toast('Audio could not be restarted. Check your output device, then press “Restart audio”.', 'bad');
     } finally {
       recovering = false;
     }
@@ -370,7 +370,7 @@ async function boot(): Promise<void> {
       toastLine,
       main,
       el('footer', { class: 'hint', style: 'margin-top:2rem' },
-        'Practice needs no account and stays on this device. "On air" talks to the server once you sign in, and so does the final exam at the end of the course. Nothing else does. ',
+        'Practice needs no account and stays on this device. “On air” talks to the server once you sign in, and so does the final exam at the end of the course. Nothing else does. ',
         el('span', { text: 'Audio needs one click before it can start, in every browser.' })),
     ),
   );

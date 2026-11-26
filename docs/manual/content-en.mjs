@@ -2,7 +2,7 @@
 import { ABBREVIATIONS, GLOSSARY, HANDOVER_SIGNALS, KEY_TYPES, PROSIGN_MISTAKES, PROSIGN_NOTES, Q_CODES } from '../../src/data/reference.ts';
 import { KOCH_ORDER, MORSE, PROSIGNS } from '../../src/core/morse.ts';
 
-export const VERSION = '0.14.0';
+export const VERSION = '0.15.5';
 const letters = Object.fromEntries(Object.entries(MORSE).filter(([c]) => /^[A-Z]$/.test(c)));
 const digits = Object.fromEntries(Object.entries(MORSE).filter(([c]) => /^[0-9]$/.test(c)));
 const punct = Object.fromEntries(Object.entries(MORSE).filter(([c]) => !/^[A-Z0-9]$/.test(c)));
@@ -797,7 +797,7 @@ export default {
         {
           title: 'The band',
           blocks: [
-            { t: 'h4', text: '“Can’t reach the server”' },
+            { t: 'h4', text: '“Cannot reach the server”' },
             'The On air tab says this, with a **Retry** button, when the server does not answer at all — it is down, or you are offline. You are still signed in and nothing has been lost; press **Retry** when you think it is back. Every other tab works without the server, so practice carries on regardless.',
             { t: 'h4', text: 'I cannot hear the other station' },
             'Check three things in order. Is their callsign amber on the scope — if grey, they are outside your receiver’s reach: press Zero-beat or Tune to. Are you on the band — the Band lamp must read “on the band”. Has the other station been muted or left — the Heard list will not show a station that is not there.',

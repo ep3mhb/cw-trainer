@@ -22,7 +22,7 @@
 
 import { describeIdentifier } from '../core/callsign';
 import { api, type AdminAction, type AdminMember, type MemberInfo, type ReportRecord } from '../net/api';
-import { clear, el } from './dom';
+import { clear, el, failureText } from './dom';
 import type { Ctx, View } from './context';
 
 /**
@@ -69,15 +69,27 @@ function adminPanel(ctx: Ctx, me: MemberInfo): { node: HTMLElement; reload: () =
     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
   });
 
+  /** What each action did, said as a sentence (RFD A59): not the action's code name. */
+  const DONE: Record<AdminAction, (m: AdminMember) => string> = {
+    'verify': (m) => `${m.callsign}: callsign confirmed.`,
+    'unverify': (m) => `${m.callsign}: callsign confirmation withdrawn.`,
+    'disable': (m) => `${m.callsign}: account disabled.`,
+    'enable': (m) => `${m.callsign}: account enabled.`,
+    'delete': (m) => `${m.callsign}: account deleted.`,
+    'reset': (m) => `${m.callsign}: signed out everywhere, and a reset link sent to ${m.email}.`,
+    'unmute': (m) => `${m.callsign}: mute lifted.`,
+    'confirm-link': (m) => `Confirmation link sent to ${m.email}.`,
+  };
+
   async function act(m: AdminMember, action: AdminAction, ask: string, twice = false): Promise<void> {
     const reason = window.prompt(`${ask} ${m.callsign} (${m.name}). Reason, for the log:`);
     if (reason === null) return;
     if (twice && !window.confirm(`${ask} ${m.callsign}: this cannot be undone from here. Go ahead?`)) return;
     try {
       await api.adminAct(m.id, action, reason.trim());
-      ctx.toast(action === 'confirm-link' ? `Confirmation link sent to ${m.email}.` : `${m.callsign}: ${action} done.`, 'good');
+      ctx.toast(DONE[action](m), 'good');
     } catch (error) {
-      ctx.toast(error instanceof Error ? error.message : 'that did not work', 'bad');
+      ctx.toast(failureText(error, 'That did not work.'), 'bad');
     }
     await load();
   }
@@ -210,7 +222,7 @@ function adminPanel(ctx: Ctx, me: MemberInfo): { node: HTMLElement; reload: () =
       if (!r.resolved) {
         const done = el('button', { class: 'btn', text: 'Mark dealt with' });
         done.addEventListener('click', () => void (async () => {
-          try { await api.adminResolve(r.id); } catch (error) { ctx.toast(error instanceof Error ? error.message : 'that did not work', 'bad'); }
+          try { await api.adminResolve(r.id); } catch (error) { ctx.toast(failureText(error, 'That did not work.'), 'bad'); }
           await load();
         })());
         actions.append(done);
@@ -239,7 +251,7 @@ function adminPanel(ctx: Ctx, me: MemberInfo): { node: HTMLElement; reload: () =
         api.adminReports().then((r) => r.reports),
       ]);
     } catch (error) {
-      note.textContent = error instanceof Error ? error.message : 'could not load';
+      note.textContent = failureText(error, 'Could not load the members.');
       return;
     }
     renderMembers();

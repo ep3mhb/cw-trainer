@@ -152,7 +152,7 @@ describe('password reset', () => {
     w.mailer.send = async () => { throw new Error('ECONNREFUSED 1.2.3.4:587'); };
     const res = await w.api.handle(post('/api/reset/request', { email: 'a@example.com' }));
     expect(res.status).toBe(503);
-    expect(res.body).toEqual({ error: 'the reset mail could not be sent right now; please contact the administrator' });
+    expect(res.body).toEqual({ error: 'the reset email could not be sent just now; contact the administrator' });
     expect(w.logged.some((l) => l.includes('ECONNREFUSED'))).toBe(true);
   });
 
